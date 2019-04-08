@@ -13,7 +13,7 @@ float get_depth_scale(rs2::device dev);
 //检查摄像头数据管道设置是否改变
 bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
 
-int main(int argc, char * argv[]) try
+int main___(int argc, char * argv[]) try
 {
     const char* depth_win="depth_Image";
     namedWindow(depth_win,WINDOW_AUTOSIZE);
@@ -33,7 +33,7 @@ int main(int argc, char * argv[]) try
     // Define a variable for controlling the distance to clip
     float depth_clipping_distance = 1.f;
 
-    while (cvGetWindowHandle(depth_win)&&cvGetWindowHandle(color_win)) // Application still alive?
+    while ( getWindowProperty(depth_win, WND_PROP_AUTOSIZE) >= 0 && getWindowProperty(color_win, WND_PROP_AUTOSIZE) >= 0) // Application still alive?
     {
         rs2::frameset frameset = pipe.wait_for_frames();
 
