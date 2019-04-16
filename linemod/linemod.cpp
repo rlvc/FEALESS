@@ -39,8 +39,11 @@
 // the use of this software, even if advised of the possibility of such damage.
 //
 //M*/
-
-#include "precomp.hpp"
+#include "opencv2/calib3d.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/core/utility.hpp"
+#include "linemod.hpp"
+//#include "precomp.hpp"
 
 namespace cv
 {
@@ -427,11 +430,11 @@ public:
                        float weak_threshold, size_t num_features,
                        float strong_threshold);
 
-  virtual void quantize(Mat& dst) const CV_OVERRIDE;
+  virtual void quantize(Mat& dst) const;
 
-  virtual bool extractTemplate(Template& templ) const CV_OVERRIDE;
+  virtual bool extractTemplate(Template& templ) const;
 
-  virtual void pyrDown() CV_OVERRIDE;
+  virtual void pyrDown();
 
 protected:
   /// Recalculate angle and magnitude images
@@ -727,11 +730,11 @@ public:
                      int distance_threshold, int difference_threshold, size_t num_features,
                      int extract_threshold);
 
-  virtual void quantize(Mat& dst) const CV_OVERRIDE;
+  virtual void quantize(Mat& dst) const;
 
-  virtual bool extractTemplate(Template& templ) const CV_OVERRIDE;
+  virtual bool extractTemplate(Template& templ) const;
 
-  virtual void pyrDown() CV_OVERRIDE;
+  virtual void pyrDown();
 
 protected:
   Mat mask;
