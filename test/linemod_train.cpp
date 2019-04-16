@@ -25,16 +25,16 @@ struct TLinemodPackage
 
 bool LoadScanPackage(TLinemodPackage &tScanPackage, const char *pDir);
 void Convert(const char *pDir);
+static bool LoadArray(string strFile, float *pfBuf, int nLen);
 void linemod_train(const string &strConfigFile)
 {
     Timer extract_timer;
-    cv::Ptr<cv::linemod::Detector> detector = cv::linemod::getDefaultLINE();;
-    string filename = strConfigFile + "/linemod_templates.yml";
-    string class_id = string("coke");
-   /* TLinemodPackage tLinemodPackage;
-    LoadScanPackage(tLinemodPackage, strConfigFile.c_str());*/
+    cv::Ptr<cv::linemod::Detector> detector = cv::linemod::getDefaultLINEMOD();
+    //cv::Ptr<cv::linemod::Detector> detector = cv::linemod::getDefaultLINE();
+    string filename = strConfigFile + "/linemod_templates_mask.yml";
+    string class_id = string("qiufa");
     extract_timer.start();
-    Convert(strConfigFile.c_str());
+    Convert(strConfigFile.c_str()); return;
     int nFrame = 0;
     while (1)
     {
@@ -43,10 +43,26 @@ void linemod_train(const string &strConfigFile)
         string strGrayImg = strConfigFile + string("/gray/") + string(name) + string(".png");
         Mat gray = imread(strGrayImg);
         if (gray.empty()) break;
+        string strDepthImg = strConfigFile + string("/depth/") + string(name) + string(".png");
+        Mat depth = imread(strDepthImg, IMREAD_UNCHANGED);
+        if (depth.empty()) break;
+        Mat fDepth;
+        depth.convertTo(fDepth, CV_16U, 0.1);
+        Mat Mask = Mat::zeros(fDepth.size(), CV_8U);
+        for (size_t i = 0; i < fDepth.cols; i++)
+        {
+            for (size_t j = 0; j < fDepth.rows; j++)
+            {
+                if (fDepth.at<ushort>(j, i) < fDepth.at<ushort>(0, 0))
+                    Mask.at<uchar>(j, i) = 255;
+            }
+        }
         cout << "\rLoading Frame " << nFrame;
         vector<Mat> cur_source = vector<Mat>();
         cur_source.push_back(gray);
-        int template_id = detector->addTemplate(cur_source, class_id, Mat());
+        cur_source.push_back(fDepth);
+        int template_id = detector->addTemplate(cur_source, class_id, Mask);
+        //int template_id = detector->addTemplate(cur_source, class_id, Mat());
 
         if (template_id != -1)
         {
@@ -60,23 +76,6 @@ void linemod_train(const string &strConfigFile)
         }
         nFrame++;
     }
-    //for (size_t i = 0; i < tLinemodPackage.vtLinemodFrame.size(); i++)
-    //{
-    //    vector<Mat> cur_source = vector<Mat>();
-    //    cur_source.push_back(tLinemodPackage.vtLinemodFrame[i].tGrayImg);
-    //    int template_id = detector->addTemplate(cur_source, class_id, tLinemodPackage.vtLinemodFrame[i].tMask);
-    //    
-    //    if (template_id != -1)
-    //    {
-    //        printf("*** Added template (id %d) as object's %dth template***\n",
-    //            template_id, detector->numTemplates());
-    //        //printf("Extracted at (%d, %d) size %dx%d\n", bb.x, bb.y, bb.width, bb.height); 
-    //    }
-    //    else
-    //    {
-    //        printf("Try adding template but failed.\n");
-    //    }
-    //}
     extract_timer.stop();
     printf("Training: %.2fs, average %.2fs\n", extract_timer.time(), extract_timer.time() / nFrame);
     writeLinemod(detector, filename);
@@ -112,6 +111,8 @@ void Convert(const char *pDir)
         Mat depth_16u;
         depth *= 10;
         depth.convertTo(depth_16u, CV_16U);
+        imshow("depth_16u", depth_16u);
+        waitKey(1);
         imwrite(dst, depth_16u);
 
         sprintf(src, "%s/gray/%d.raw", dir, i);
