@@ -79,6 +79,8 @@ struct Template
 {
   int width;
   int height;
+  int offset_x;
+  int offset_y;
   int pyramid_level;
   std::vector<Feature> features;
 
