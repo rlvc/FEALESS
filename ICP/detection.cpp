@@ -1,5 +1,5 @@
 #include "detection.h"
-#include <opencv2/rgbd.hpp>
+#include "depth_to_3d.h"
 #include "opencv2/opencv.hpp"
 #include <pcl/io/pcd_io.h>
 
@@ -35,7 +35,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     K_model(0,2) = ceil(depImg_model_raw.cols /2.0);
     K_model(1,2) = ceil(depImg_model_raw.rows /2.0);
 
-    cv::rgbd::depthTo3d(depImg_model_raw, K_model, depth_real_model_raw);   
+    cv::rgbd::depthTo3d(depImg_model_raw, K_model, depth_real_model_raw);
     
    
     //------ 2. use the Depth corresponding ------//    
