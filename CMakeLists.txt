@@ -5,6 +5,7 @@ project(FEALESS)
 #modules
 set(LINEMOD ${PROJECT_SOURCE_DIR}/linemod)
 set(KCF ${PROJECT_SOURCE_DIR}/kcf_tracker)
+set(ICP_DIR ${PROJECT_SOURCE_DIR}/ICP)
 #test
 set(TEST ${PROJECT_SOURCE_DIR}/test)
 # Save the command line compile commands in the build output
@@ -12,6 +13,8 @@ set(TEST ${PROJECT_SOURCE_DIR}/test)
 set(OpenCV_DIR /home/rlvc/Workspace/1_libs/opencv3.4/build)
 #find_package(realsense2 REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(PCL REQUIRED)
+
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
@@ -25,5 +28,6 @@ endif()
 add_subdirectory(${LINEMOD})
 add_subdirectory(${KCF})
 add_subdirectory(${TEST})
+add_subdirectory(${ICP_DIR})
 #add_executable(FEALESS rs-imshow.cpp)
 #target_link_libraries(FEALESS ${OpenCV_LIBS} realsense2)

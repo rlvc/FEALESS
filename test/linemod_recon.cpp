@@ -6,6 +6,7 @@
 #include "my_timer.h"
 #include "BoxExtractor.h"
 #include <librealsense2/rs.hpp>
+#include "detection.h"
 using namespace std;
 using namespace cv;
 
@@ -110,6 +111,25 @@ void linemod_recon(const string &strConfigFile)
 //        imshow(color_win,aligned_color_image);
         waitKey(10);
     }
+
+
+//    std::string  filename_depth_model = "/home/rlvc/Workspace/0_code/Detection/test/model_raw.png";
+//    std::string  filename_depth_ref = "/home/rlvc/Workspace/0_code/Detection/test/ref_raw.png";
+//    int match_x = 240;
+//    int match_y = 180;
+//
+//    int   icp_it_thr = 10;
+//    float dist_mean_thr = 0.0f; //-- 0.04f; // -- 0.0f;
+//    float dist_diff_thr = 0.001f; //--0.0f;
+//
+//    cv::Matx33f r_match = cv::Matx33f::eye();
+//    cv::Vec3f t_match = cv::Vec3f(3,0,0);
+//    float d_match = 1.0;
+//
+//    detection(filename_depth_model, filename_depth_ref, match_x, match_y, \
+//                       icp_it_thr, dist_mean_thr, dist_diff_thr, \
+//                       r_match, t_match, d_match);
+
     return;
 }
 //void linemod_recon(const string &strConfigFile)
