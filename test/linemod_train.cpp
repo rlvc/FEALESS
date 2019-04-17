@@ -34,7 +34,7 @@ void linemod_train(const string &strConfigFile)
     string filename = strConfigFile + "/linemod_templates_mask.yml";
     string class_id = string("qiufa");
     extract_timer.start();
-    Convert(strConfigFile.c_str()); return;
+    Convert(strConfigFile.c_str());
     int nFrame = 0;
     while (1)
     {
