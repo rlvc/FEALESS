@@ -197,7 +197,7 @@ void show_point_cloud_pcl_with_color(pcl::PointCloud<pcl::PointXYZ>::ConstPtr  p
 bool is_vec3f_valid(const cv::Vec3f & vec)
 {
  //   return cv::checkRange(vec);
-    float  max_valid_depth = 14; //100;
+    float  max_valid_depth = 9; //100;
     return (vec[2] <=  max_valid_depth);
 }
 

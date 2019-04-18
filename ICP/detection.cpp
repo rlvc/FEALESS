@@ -15,12 +15,14 @@ void detection(const string &filename_depth_model, const string &filename_depth_
 {
  //------1.  model_raw 和ref_raw两个深度图像的导入与显示  ------//
     const char *  filename_model = filename_depth_model.data();
-    cv::Mat depImg_model_raw = cv::imread(filename_model, -1) ;//-- -1按保存的类型（CV_16UC1）进行打开 
+    cv::Mat depImg_model_raw = cv::imread(filename_model, -1) ;//-- -1按保存的类型（CV_16UC1）进行打开
     show_image(depImg_model_raw, "model_raw", false);
   
 
     const char *  filename_ref = filename_depth_ref.data();
-    cv::Mat depImg_ref_raw = cv::imread(filename_ref, -1);    
+    cv::Mat temp = cv::imread(filename_ref, -1);
+    cv::Mat  depImg_ref_raw;
+    temp.convertTo(depImg_ref_raw, CV_16UC1, 10);
     show_image(depImg_ref_raw, "ref_raw");
    
   

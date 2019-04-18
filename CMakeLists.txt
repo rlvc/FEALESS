@@ -10,7 +10,7 @@ set(ICP_DIR ${PROJECT_SOURCE_DIR}/ICP)
 set(TEST ${PROJECT_SOURCE_DIR}/test)
 # Save the command line compile commands in the build output
 # set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-set(OpenCV_DIR /home/rlvc/Workspace/1_libs/opencv3.4/build)
+set(OpenCV_DIR /home/rlvc/Workspace/0_code/cup/cup.third.party/OpenCV/Linux)
 #find_package(realsense2 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PCL REQUIRED)
