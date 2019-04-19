@@ -1,6 +1,7 @@
 #include "ICP.h"
-
-
+#ifndef TEST_DETECT
+#include<iostream>
+#endif
 
 /** Computes the centroid of 3D points */
 void getMean(const std::vector<cv::Vec3f> &pts, cv::Vec3f& centroid)
@@ -152,7 +153,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
 
     //transform the point cloud
     transformPoints(pts_model, pts_model, R_optimal, T_optimal);
-    
+#ifdef TEST_DETECT
     //-- show
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_model_trsf = getpclPtr(pts_model);
     stringstream ss;
@@ -160,6 +161,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     string  str = ss.str();
     
     show_point_cloud_pcl_with_color (pcl_cloud_model_trsf, str, 255, 255, 0);  
+#endif
     //compute the distance between the transformed and ref point clouds
     dist_diff = dist_mean;
     px_inliers_ratio = getL2distClouds(pts_model, pts_ref, dist_mean, 3 * dist_mean);

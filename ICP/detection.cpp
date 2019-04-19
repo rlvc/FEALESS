@@ -1,13 +1,12 @@
 #include "detection.h"
 #include "depth_to_3d.h"
 #include "opencv2/opencv.hpp"
+#ifdef TEST_DETECT
 #include <pcl/io/pcd_io.h>
-
+#endif
 #include "../ICP/common.h"
 #include "../ICP/data_preprocess.h"
 #include "../ICP/ICP.h"
-
-//#define  TEST_DETECT
 
 void detection(const string &filename_depth_model, const string &filename_depth_ref, \
                const int match_x, const int match_y, int  icp_it_thr, float dist_mean_thr, float dist_diff_thr, \
@@ -82,7 +81,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     float px_miss_ratio_ref = matToVec(depth_real_ref, vec_ref);
 
     //-- 4.2.2 transform to pcl::PointCloud<pcl::PointXYZ> type and show
-    #ifdef TEST_DETECT
+#ifdef TEST_DETECT
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_real_model;
     if (vec_model.empty())
     {
@@ -107,7 +106,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
         show_point_cloud_pcl_with_color(pcl_cloud_real_ref, \
         "pcl_cloud_real_ref", 0, 0, 255); 
     }
-    #endif 
+#endif 
     /*
     //-- save the two pcl_cloud : pcl_cloud_real_model & pcl_cloud_real_ref; 
     string dst_ref = "/home/robotlab/test/linemod+ICP/Detection/test/real_ref.pcd";
@@ -122,6 +121,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     matToVec(depth_real_ref, depth_real_model, pts_ref, pts_mod);
 
     //-- 显示
+#ifdef TEST_DETECT
     if (pts_mod.empty())
     {
         cout << "pts_mod is Empty" << endl;
@@ -145,7 +145,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
         show_point_cloud_pcl_with_color(pcl_cloud_ref_valid, \
         "pcl_cloud_ref_valid", 0, 255, 255); 
     }
-
+#endif
     //-------------- 6. 测试ICP算法(模板与对象) ----------------//
     cv::Matx33f R;
     cv::Vec3f T;
@@ -170,7 +170,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     cv::add(T_final, T, T_final);
     cv::Matx33f R_final = R * R_model_viewport;
      
-
+#ifdef TEST_DETECT
     //-------------- 8. 作用到点云上，得最终结果----------------//
     std::vector<cv::Vec3f> pts_mod_final;
  //   pts_mod_final.resize ( pts_mod.size() );
@@ -178,5 +178,6 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     //-- 显示变换后的点云
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_trsf_final = getpclPtr(pts_mod_final); 
     show_point_cloud_pcl_with_color (pcl_cloud_trsf_final, "pcl_cloud_trsf_final", 255, 0, 0); 
+#endif
 
 }
