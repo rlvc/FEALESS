@@ -29,8 +29,8 @@ static bool LoadArray(string strFile, float *pfBuf, int nLen);
 void linemod_train(const string &strConfigFile)
 {
     Timer extract_timer;
-    cv::Ptr<cv::linemod::Detector> detector = cv::linemod::getDefaultLINEMOD();
-    //cv::Ptr<cv::linemod::Detector> detector = cv::linemod::getDefaultLINE();
+    cv::Ptr<cup_linemod::Detector> detector = cup_linemod::getDefaultLINEMOD();
+    //cv::Ptr<cup_linemod::Detector> detector = cup_linemod::getDefaultLINE();
     string filename = strConfigFile + "/linemod_templates_mask.yml";
     string class_id = string("qiufa");
     extract_timer.start();

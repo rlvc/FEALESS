@@ -27,14 +27,14 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     cv::Mat_<cv::Vec3f> depth_real_model_raw, depth_real_ref_raw;
     cv::Mat_<float> K_ref(3, 3, CV_32F);
     initInternalMat( K_ref );
-    cv::rgbd::depthTo3d(depImg_ref_raw, K_ref, depth_real_ref_raw);
+    cup_d2pc::depthTo3d(depImg_ref_raw, K_ref, depth_real_ref_raw);
 
     cv::Mat_<float> K_model(3, 3, CV_32F);
     initInternalMat( K_model );
     K_model(0,2) = ceil(depImg_model_raw.cols /2.0);
     K_model(1,2) = ceil(depImg_model_raw.rows /2.0);
 
-    cv::rgbd::depthTo3d(depImg_model_raw, K_model, depth_real_model_raw);
+    cup_d2pc::depthTo3d(depImg_model_raw, K_model, depth_real_model_raw);
     
    
     //------ 2. use the Depth corresponding ------//    
