@@ -1,5 +1,5 @@
-#ifndef _LINEMOD_HPP_M__
-#define _LINEMOD_HPP_M__
+#ifndef __LINEMOD_HPP_M__
+#define __LINEMOD_HPP_M__
 
 #include "opencv2/core.hpp"
 #include <map>

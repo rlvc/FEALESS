@@ -6,10 +6,12 @@
 #include "my_timer.h"
 #include "BoxExtractor.h"
 #include <librealsense2/rs.hpp>
+#include "model_mesh.h"
 #include "detection.h"
+#include "Eigen/Eigen"
 using namespace std;
 using namespace cv;
-
+static bool LoadArray(string strFile, float *pfBuf, int nLen);
 
 void linemod_recon(const string &strConfigFile)
 {
@@ -131,4 +133,20 @@ void linemod_recon(const string &strConfigFile)
                        r_match, t_match, d_match);
 
     return;
+}
+
+static bool LoadArray(string strFile, float *pfBuf, int nLen)
+{
+    ifstream ifPose(strFile.c_str());
+    if (!ifPose.is_open())
+    {
+        cout << "read file failed! [file] " << strFile << endl;
+        return false;
+    }
+    string line;
+    getline(ifPose, line);
+    stringstream strstream(line);
+    for (int i = 0; i < nLen; i++) strstream >> pfBuf[i];
+    ifPose.close();
+    return true;
 }

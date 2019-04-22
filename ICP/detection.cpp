@@ -10,7 +10,7 @@
 
 void detection(const string &filename_depth_model, const string &filename_depth_ref, \
                const int match_x, const int match_y, int  icp_it_thr, float dist_mean_thr, float dist_diff_thr, \
-               cv::Matx33f r_match, cv::Vec3f t_match, float d_match)
+               cv::Matx33f r_match, cv::Vec3f t_match, float d_match, cv::Vec3f &T_final, cv::Matx33f &R_final)
 {
  //------1.  model_raw 和ref_raw两个深度图像的导入与显示  ------//
     const char *  filename_model = filename_depth_model.data();
@@ -19,7 +19,9 @@ void detection(const string &filename_depth_model, const string &filename_depth_
   
 
     const char *  filename_ref = filename_depth_ref.data();
-    cv::Mat depImg_ref_raw = cv::imread(filename_ref, -1);    
+    cv::Mat temp = cv::imread(filename_ref, -1);
+    cv::Mat  depImg_ref_raw;
+    temp.convertTo(depImg_ref_raw, CV_16UC1, 10);
     show_image(depImg_ref_raw, "ref_raw");
    
   
@@ -165,10 +167,9 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     if (!cv::checkRange(R_model_viewport))
         return;
 
-    
-    cv::Vec3f T_final = R * T_model_viewport;
+    T_final = R * T_model_viewport;
     cv::add(T_final, T, T_final);
-    cv::Matx33f R_final = R * R_model_viewport;
+    R_final = R * R_model_viewport;
      
 #ifdef TEST_DETECT
     //-------------- 8. 作用到点云上，得最终结果----------------//
