@@ -7,11 +7,11 @@
 #include "../ICP/data_preprocess.h"
 #include "../ICP/ICP.h"
 
-//#define  TEST_DETECT
+#define  TEST_DETECT
 
 void detection(const string &filename_depth_model, const string &filename_depth_ref, \
                const int match_x, const int match_y, int  icp_it_thr, float dist_mean_thr, float dist_diff_thr, \
-               cv::Matx33f r_match, cv::Vec3f t_match, float d_match)
+               cv::Matx33f r_match, cv::Vec3f t_match, float d_match, cv::Vec3f &T_final, cv::Matx33f &R_final)
 {
  //------1.  model_raw 和ref_raw两个深度图像的导入与显示  ------//
     const char *  filename_model = filename_depth_model.data();
@@ -124,6 +124,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     matToVec(depth_real_ref, depth_real_model, pts_ref, pts_mod);
 
     //-- 显示
+#ifdef TEST_DETECT
     if (pts_mod.empty())
     {
         cout << "pts_mod is Empty" << endl;
@@ -147,7 +148,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
         show_point_cloud_pcl_with_color(pcl_cloud_ref_valid, \
         "pcl_cloud_ref_valid", 0, 255, 255); 
     }
-
+#endif
     //-------------- 6. 测试ICP算法(模板与对象) ----------------//
     cv::Matx33f R;
     cv::Vec3f T;
@@ -168,17 +169,19 @@ void detection(const string &filename_depth_model, const string &filename_depth_
         return;
 
     
-    cv::Vec3f T_final = R * T_model_viewport;
+//    cv::Vec3f
+    T_final = R * T_model_viewport;
     cv::add(T_final, T, T_final);
-    cv::Matx33f R_final = R * R_model_viewport;
+//    cv::Matx33f
+    R_final = R * R_model_viewport;
      
 
-    //-------------- 8. 作用到点云上，得最终结果----------------//
-    std::vector<cv::Vec3f> pts_mod_final;
- //   pts_mod_final.resize ( pts_mod.size() );
-    transformPoints(pts_mod, pts_mod_final, R_final, T_final);
-    //-- 显示变换后的点云
-    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_trsf_final = getpclPtr(pts_mod_final); 
-    show_point_cloud_pcl_with_color (pcl_cloud_trsf_final, "pcl_cloud_trsf_final", 255, 0, 0); 
+//    //-------------- 8. 作用到点云上，得最终结果----------------//
+//    std::vector<cv::Vec3f> pts_mod_final;
+// //   pts_mod_final.resize ( pts_mod.size() );
+//    transformPoints(pts_mod, pts_mod_final, R_final, T_final);
+//    //-- 显示变换后的点云
+//    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_trsf_final = getpclPtr(pts_mod_final);
+//    show_point_cloud_pcl_with_color (pcl_cloud_trsf_final, "pcl_cloud_trsf_final", 255, 0, 0);
 
 }

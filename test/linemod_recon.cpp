@@ -6,8 +6,9 @@
 #include "my_timer.h"
 #include "BoxExtractor.h"
 #include <librealsense2/rs.hpp>
+#include "model_mesh.h"
 #include "detection.h"
-#include "../../cup/cup.third.party/Eigen/Eigen/Eigen"
+#include "Eigen/Eigen"
 using namespace std;
 using namespace cv;
 static bool LoadArray(string strFile, float *pfBuf, int nLen);
@@ -24,8 +25,21 @@ void linemod_recon(const string &strConfigFile)
     int num_modalities = (int)detector->getModalities().size();
     printf("num_modalities = %d \n", num_modalities);
 
+    map<string, CModelMesh> mTag2Meshes;
+    mTag2Meshes[ids[0]].Load(strConfigFile + string("/c919-jig2-assy-2.obj"));
+    TCamIntrinsicParam t_cam_param;
+    t_cam_param.nWidth = 640;
+    t_cam_param.nHeight = 480;
+    t_cam_param.dFx = 671.0f;
+    t_cam_param.dFy = 671.0f;
+    t_cam_param.dCx = 320.0;
+    t_cam_param.dCy = 240.0f;
+    mTag2Meshes[ids[0]].SetCamIntrinsic(t_cam_param);
+
     const char* color_win="color_Image";
     namedWindow(color_win,WINDOW_AUTOSIZE);
+    const char* final_win="final_Image";
+    namedWindow(final_win,WINDOW_AUTOSIZE);
 
     int nFrame = 30;
 
@@ -75,11 +89,13 @@ void linemod_recon(const string &strConfigFile)
     cv::imshow(color_win, display);
     waitKey(1000);
     cv::linemod::Match m = matches[0];
-    std::string  filename_depth_model = strConfigFile + string("/depth/") + to_string(m.template_id) + string("_s.png");
+    std::string  filename_depth_model = strConfigFile + string("/depth/") + to_string(m.template_id) + string(".png");
     std::string  filename_depth_ref = strConfigFile + string("/depth_")  + string(name) + string(".png");
 
-    int match_x = m.x;
-    int match_y = m.y;
+    const std::vector<cv::linemod::Template>& templates11 = detector->getTemplates(m.class_id, m.template_id);
+
+    int match_x = m.x - templates11[0].offset_x;
+    int match_y = m.y - templates11[0].offset_y;
 
     int   icp_it_thr = 10;
     float dist_mean_thr = 0.0f; //-- 0.04f; // -- 0.0f;
@@ -110,9 +126,16 @@ void linemod_recon(const string &strConfigFile)
     d_match -= model_center_val;
 
 
+    cv::Vec3f T_final;cv::Matx33f R_final;
     detection(filename_depth_model, filename_depth_ref, match_x, match_y, \
         icp_it_thr, dist_mean_thr, dist_diff_thr, \
-        r_match, t_match, d_match);
+        r_match, t_match, d_match, T_final, R_final);
+
+    cv::Mat R_mat = Mat(R_final);
+    cv::Mat T_mat = Mat(T_final);
+    mTag2Meshes[ids[0]].Mesh(display, R_mat, T_mat, CV_RGB(255, 0, 0));
+    cv::imshow(final_win, display);
+    waitKey();
 //    }
 
     return;
