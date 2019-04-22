@@ -32,7 +32,7 @@ void CModelMesh::Load(string strModelFile)
 				break;
 			default:
 				sscanf(buf, "v %f %f %f", &x, &y, &z);
-				vtVertex.push_back(Point3f(x, y, z));
+				vtVertex.push_back(Point3f(x/100, y/100, z/100));
 				break;
 			}
 			break;
@@ -58,11 +58,8 @@ void CModelMesh::SetCamIntrinsic(TCamIntrinsicParam tCamIntrinsic)
 	m_vdDistCoeff = tCamIntrinsic.vdDistCoeff;
 }
 
-void CModelMesh::Mesh(Mat &img, Mat P, Scalar color)
+void CModelMesh::Mesh(Mat &img, Mat R, Mat t, Scalar color)
 {
-	Mat R = P.rowRange(0, 3).colRange(0, 3);
-	Mat t = P.rowRange(0, 3).col(3);
-
 	Mat c = R.t() * t;
 	Point3f vp(c.at<double>(0), c.at<double>(1), c.at<double>(2));
 

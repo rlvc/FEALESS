@@ -17,7 +17,7 @@ class CModelMesh
 public:
 	void Load(string strModelFile);
 	void SetCamIntrinsic(TCamIntrinsicParam tCamIntrinsic);
-	void Mesh(Mat &img, Mat P, Scalar color = CV_RGB(0, 255, 0));
+	void Mesh(Mat &img, Mat R, Mat t, Scalar color = CV_RGB(0, 255, 0));
 private:
 	vector<Point3f> vtVertex;  //v£ºx y z
 	vector<Point2f>  vtTexture;//vt£ºu v
