@@ -60,9 +60,6 @@ void CModelMesh::SetCamIntrinsic(TCamIntrinsicParam tCamIntrinsic)
 
 void CModelMesh::Mesh(Mat &img, Mat R, Mat t, Scalar color)
 {
-//	Mat R = P.rowRange(0, 3).colRange(0, 3);
-//	Mat t = P.rowRange(0, 3).col(3);
-
 	Mat c = R.t() * t;
 	Point3f vp(c.at<double>(0), c.at<double>(1), c.at<double>(2));
 

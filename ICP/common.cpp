@@ -2,9 +2,10 @@
 #include  <iostream>
 using namespace std;
 #include <opencv2/highgui/highgui.hpp>
+#ifdef TEST_DETECT
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/io/pcd_io.h>
-
+#endif
 void show_rect_info(const cv::Rect_<int> &rect, string rect_name)
 {
     std::cout << "----------" << rect_name << "------------" << std::endl;
@@ -50,7 +51,7 @@ void show_image(const cv::Mat &img, string img_name, bool isWaitKey)
 }
 
 
-
+#ifdef TEST_DETECT
 extern void show_mat_vec3f(const cv::Mat_<cv::Vec3f> &depth_3d, string depth_3d_name, bool isWaitKey)
 {
     if (depth_3d.empty())
@@ -193,7 +194,7 @@ void show_point_cloud_pcl_with_color(pcl::PointCloud<pcl::PointXYZ>::ConstPtr  p
 
 	viewer.spin();
 }
-
+#endif
 bool is_vec3f_valid(const cv::Vec3f & vec)
 {
  //   return cv::checkRange(vec);

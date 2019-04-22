@@ -1,17 +1,16 @@
 #include "detection.h"
 #include "depth_to_3d.h"
 #include "opencv2/opencv.hpp"
+#ifdef TEST_DETECT
 #include <pcl/io/pcd_io.h>
-
+#endif
 #include "../ICP/common.h"
 #include "../ICP/data_preprocess.h"
 #include "../ICP/ICP.h"
 
-#define  TEST_DETECT
-
 void detection(const string &filename_depth_model, const string &filename_depth_ref, \
                const int match_x, const int match_y, int  icp_it_thr, float dist_mean_thr, float dist_diff_thr, \
-               cv::Matx33f r_match, cv::Vec3f t_match, float d_match, cv::Vec3f &T_final, cv::Matx33f &R_final)
+               cv::Matx33f r_match, cv::Vec3f t_match, float d_match)
 {
  //------1.  model_raw 和ref_raw两个深度图像的导入与显示  ------//
     const char *  filename_model = filename_depth_model.data();
@@ -30,14 +29,14 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     cv::Mat_<cv::Vec3f> depth_real_model_raw, depth_real_ref_raw;
     cv::Mat_<float> K_ref(3, 3, CV_32F);
     initInternalMat( K_ref );
-    cv::rgbd::depthTo3d(depImg_ref_raw, K_ref, depth_real_ref_raw);
+    cup_d2pc::depthTo3d(depImg_ref_raw, K_ref, depth_real_ref_raw);
 
     cv::Mat_<float> K_model(3, 3, CV_32F);
     initInternalMat( K_model );
     K_model(0,2) = ceil(depImg_model_raw.cols /2.0);
     K_model(1,2) = ceil(depImg_model_raw.rows /2.0);
 
-    cv::rgbd::depthTo3d(depImg_model_raw, K_model, depth_real_model_raw);
+    cup_d2pc::depthTo3d(depImg_model_raw, K_model, depth_real_model_raw);
     
    
     //------ 2. use the Depth corresponding ------//    
@@ -84,7 +83,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     float px_miss_ratio_ref = matToVec(depth_real_ref, vec_ref);
 
     //-- 4.2.2 transform to pcl::PointCloud<pcl::PointXYZ> type and show
-    #ifdef TEST_DETECT
+#ifdef TEST_DETECT
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_real_model;
     if (vec_model.empty())
     {
@@ -109,7 +108,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
         show_point_cloud_pcl_with_color(pcl_cloud_real_ref, \
         "pcl_cloud_real_ref", 0, 0, 255); 
     }
-    #endif 
+#endif 
     /*
     //-- save the two pcl_cloud : pcl_cloud_real_model & pcl_cloud_real_ref; 
     string dst_ref = "/home/robotlab/test/linemod+ICP/Detection/test/real_ref.pcd";
@@ -168,20 +167,18 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     if (!cv::checkRange(R_model_viewport))
         return;
 
-    
-//    cv::Vec3f
     T_final = R * T_model_viewport;
     cv::add(T_final, T, T_final);
-//    cv::Matx33f
     R_final = R * R_model_viewport;
      
-
-//    //-------------- 8. 作用到点云上，得最终结果----------------//
-//    std::vector<cv::Vec3f> pts_mod_final;
-// //   pts_mod_final.resize ( pts_mod.size() );
-//    transformPoints(pts_mod, pts_mod_final, R_final, T_final);
-//    //-- 显示变换后的点云
-//    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_trsf_final = getpclPtr(pts_mod_final);
-//    show_point_cloud_pcl_with_color (pcl_cloud_trsf_final, "pcl_cloud_trsf_final", 255, 0, 0);
+#ifdef TEST_DETECT
+    //-------------- 8. 作用到点云上，得最终结果----------------//
+    std::vector<cv::Vec3f> pts_mod_final;
+ //   pts_mod_final.resize ( pts_mod.size() );
+    transformPoints(pts_mod, pts_mod_final, R_final, T_final);
+    //-- 显示变换后的点云
+    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_trsf_final = getpclPtr(pts_mod_final); 
+    show_point_cloud_pcl_with_color (pcl_cloud_trsf_final, "pcl_cloud_trsf_final", 255, 0, 0); 
+#endif
 
 }

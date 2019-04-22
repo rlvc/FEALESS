@@ -12,13 +12,13 @@
 #include <iostream>
 
 
-cv::Ptr<cv::linemod::Detector> readLinemod(const std::string& filename);
+cv::Ptr<cup_linemod::Detector> readLinemod(const std::string& filename);
 
-void writeLinemod(const cv::Ptr<cv::linemod::Detector>& detector, const std::string& filename);
+void writeLinemod(const cv::Ptr<cup_linemod::Detector>& detector, const std::string& filename);
 
-void drawResponse(const std::vector<cv::linemod::Template>& templates,
+void drawResponse(const std::vector<cup_linemod::Template>& templates,
     int num_modalities, cv::Mat& dst, cv::Point offset, int T);
 
-void drawResponse(const std::vector<cv::linemod::Template>& templates,
+void drawResponse(const std::vector<cup_linemod::Template>& templates,
     int num_modalities, cv::Mat& dst, cv::Point offset, int T, cv::Mat current_template);
 #endif

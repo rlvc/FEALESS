@@ -17,7 +17,7 @@ void linemod_recon(const string &strConfigFile)
 {
     Timer match_timer;
     float matching_threshold = 80.0f;
-    cv::Ptr<cv::linemod::Detector> detector = readLinemod(strConfigFile + string("/linemod_templates_mask.yml"));
+    cv::Ptr<cup_linemod::Detector> detector = readLinemod(strConfigFile + string("/linemod_templates_mask.yml"));
     std::vector<String> ids = detector->classIds();
     int num_classes = detector->numClasses();
     printf("Loaded %s with %d classes and %d templates\n",
@@ -56,7 +56,7 @@ void linemod_recon(const string &strConfigFile)
     std::vector<cv::Mat> sources;
     sources.push_back(aligned_color_image);
     sources.push_back(aligned_depth_image);
-    std::vector<cv::linemod::Match> matches;
+    std::vector<cup_linemod::Match> matches;
     std::vector<String> class_ids;
     std::vector<cv::Mat> quantized_images;
     match_timer.start();
@@ -67,7 +67,7 @@ void linemod_recon(const string &strConfigFile)
     Mat current_template;
     for (int i = 0; (i < (int)matches.size()) && (classes_visited < num_classes); ++i)
     {
-        cv::linemod::Match m = matches[i];
+        cup_linemod::Match m = matches[i];
 
         if (visited.insert(m.class_id).second)
         {
@@ -78,7 +78,7 @@ void linemod_recon(const string &strConfigFile)
             string current_template_path = strConfigFile + string("/gray/") + to_string(m.template_id) + string(".png");
             current_template = imread(current_template_path);
             // Draw matching template
-            const std::vector<cv::linemod::Template>& templates = detector->getTemplates(m.class_id, m.template_id);
+            const std::vector<cup_linemod::Template>& templates = detector->getTemplates(m.class_id, m.template_id);
             drawResponse(templates, num_modalities, display, cv::Point(m.x, m.y), detector->getT(0), current_template);
             //drawResponse(templates, num_modalities, display, cv::Point(m.x, m.y), detector->getT(0));
 
@@ -88,11 +88,11 @@ void linemod_recon(const string &strConfigFile)
     printf("Matching: %.2fs\n", match_timer.time());
     cv::imshow(color_win, display);
     waitKey(1000);
-    cv::linemod::Match m = matches[0];
+    cup_linemod::Match m = matches[0];
     std::string  filename_depth_model = strConfigFile + string("/depth/") + to_string(m.template_id) + string(".png");
     std::string  filename_depth_ref = strConfigFile + string("/depth_")  + string(name) + string(".png");
 
-    const std::vector<cv::linemod::Template>& templates11 = detector->getTemplates(m.class_id, m.template_id);
+    const std::vector<cup_linemod::Template>& templates11 = detector->getTemplates(m.class_id, m.template_id);
 
     int match_x = m.x - templates11[0].offset_x;
     int match_y = m.y - templates11[0].offset_y;
