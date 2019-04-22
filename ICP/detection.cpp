@@ -10,7 +10,7 @@
 
 void detection(const string &filename_depth_model, const string &filename_depth_ref, \
                const int match_x, const int match_y, int  icp_it_thr, float dist_mean_thr, float dist_diff_thr, \
-               cv::Matx33f r_match, cv::Vec3f t_match, float d_match)
+               cv::Matx33f r_match, cv::Vec3f t_match, float d_match, cv::Vec3f &T_final, cv::Matx33f &R_final)
 {
  //------1.  model_raw 和ref_raw两个深度图像的导入与显示  ------//
     const char *  filename_model = filename_depth_model.data();
