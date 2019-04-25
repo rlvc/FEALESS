@@ -1571,11 +1571,13 @@ void Detector::matchClass(const LinearMemoryPyramid& lm_pyramid,
 }
 
 int Detector::addTemplate(const std::vector<Mat>& sources, const String& class_id,
-                          const Mat& object_mask, Rect* bounding_box)
+                          const Mat& object_mask, const float* const pose_info, Rect* bounding_box)
 {
   int num_modalities = static_cast<int>(modalities.size());
   std::vector<TemplatePyramid>& template_pyramids = class_templates[class_id];
   int template_id = static_cast<int>(template_pyramids.size());
+
+  addPoseInfo(pose_info);
 
   TemplatePyramid tp;
   tp.resize(num_modalities * pyramid_levels);
@@ -1604,6 +1606,25 @@ int Detector::addTemplate(const std::vector<Mat>& sources, const String& class_i
   /// @todo Can probably avoid a copy of tp here with swap
   template_pyramids.push_back(tp);
   return template_id;
+}
+
+int Detector::addPoseInfo(const float* const pose_info)
+{
+    std::vector<float> v_pose_info(pose_info, pose_info + 13);
+    TemplatePoseInfo.push_back(v_pose_info);
+    return (int)TemplatePoseInfo.size();
+}
+
+std::vector<float> Detector::getPoseInfo(int template_id)
+{
+    std::vector<float> v_pose_info = TemplatePoseInfo[template_id];
+    v_pose_info.erase(v_pose_info.begin()+3);
+    v_pose_info.erase(v_pose_info.begin()+7 - 1);
+    v_pose_info.erase(v_pose_info.begin()+11 - 2);
+    v_pose_info.insert(v_pose_info.begin() + 9, -v_pose_info[6]);
+    v_pose_info.insert(v_pose_info.begin() + 10, -v_pose_info[7]);
+    v_pose_info.insert(v_pose_info.begin() + 11, -v_pose_info[8]);
+    return v_pose_info;
 }
 
 int Detector::addSyntheticTemplate(const std::vector<Template>& templates, const String& class_id)
@@ -1716,6 +1737,9 @@ void Detector::write(FileStorage& fs) const
   {
     int template_id = (*tps_it)["template_id"];
     CV_Assert(template_id == expected_id);
+    std::vector<float> ff_fn = std::vector<float>();//(*tps_it)["template_pose"];
+    (*tps_it)["template_pose"] >> ff_fn;
+    TemplatePoseInfo.push_back(ff_fn);
     FileNode templates_fn = (*tps_it)["templates"];
     tps[template_id].resize(templates_fn.size());
 
@@ -1749,6 +1773,7 @@ void Detector::writeClass(const String& class_id, FileStorage& fs) const
     const TemplatePyramid& tp = tps[i];
     fs << "{";
     fs << "template_id" << int(i); //TODO is this cast correct? won't be good if rolls over...
+    fs << "template_pose" << TemplatePoseInfo[i];
     fs << "templates" << "[";
     for (size_t j = 0; j < tp.size(); ++j)
     {

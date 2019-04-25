@@ -29,6 +29,7 @@ struct TImage
     int nHeight;       ///< image height
 };
 typedef TImage<unsigned char> TImageU;
+typedef TImage<unsigned short int> TImageU16;
 typedef TImage<float> TImageF;
 
 /**
@@ -139,4 +140,4 @@ struct TTrainParam
 #define LOTUS_RECO_EXPORT
 #endif //WIN32
 #endif //LOTUS_RECO_EXPORT
-#endif#pragma once
+#endif

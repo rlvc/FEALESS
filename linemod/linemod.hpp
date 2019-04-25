@@ -325,7 +325,11 @@ public:
    * \return Template ID, or -1 if failed to extract a valid template.
    */
   int addTemplate(const std::vector<Mat>& sources, const String& class_id,
-          const Mat& object_mask, Rect* bounding_box = NULL);
+          const Mat& object_mask, const float* const pose_info, Rect* bounding_box = NULL);
+
+  int addPoseInfo(const float* const pose_info);
+
+  std::vector<float> getPoseInfo(int template_id);
 
   /**
    * \brief Add a new object template computed by external means.
@@ -382,6 +386,7 @@ protected:
   typedef std::vector<Template> TemplatePyramid;
   typedef std::map<String, std::vector<TemplatePyramid> > TemplatesMap;
   TemplatesMap class_templates;
+  std::vector<std::vector<float>> TemplatePoseInfo;
 
   typedef std::vector<Mat> LinearMemories;
   // Indexed as [pyramid level][modality][quantized label]
