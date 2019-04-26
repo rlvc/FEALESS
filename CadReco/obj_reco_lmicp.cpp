@@ -5,6 +5,14 @@
 
 #define PROC_IMG_WIDTH 640
 
+std::string ato_string( const int n )
+{
+    std::ostringstream stm ;
+    stm << n ;
+    return stm.str() ;
+}
+
+
 static bool LoadArray(string strFile, float *pfBuf, int nLen)
 {
     ifstream ifPose(strFile.c_str());
@@ -72,6 +80,8 @@ int CObjRecoLmICP::AddObj(const string str_feature_path)
 {
     m_str_lm_feature_path = str_feature_path;
     m_lm_detector = readLinemod(m_str_lm_feature_path + string("/linemod_templates.yml"));
+    if(0 == m_lm_detector->numClasses())
+        return ERROR_OPEN_FILE_FAILED;
     return 0;
 }
 
@@ -110,27 +120,21 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     cur_result.strObjTag = cur_match.class_id;
     const std::vector<cup_linemod::Template>& current_template = m_lm_detector->getTemplates(cur_match.class_id, cur_match.template_id);
 
-
-    string current_rgb_template_path = m_str_lm_feature_path + string("/gray/") + to_string(cur_match.template_id) + string(".png");
+#ifdef TEST_DETECT
+    string current_rgb_template_path = m_str_lm_feature_path + string("/gray/") + ato_string(cur_match.template_id) + string(".png");
     Mat current_rgb_template = imread(current_rgb_template_path);
     Mat display = m_rgb.clone();
     drawResponse(current_template, (int)m_lm_detector->getModalities().size(), display, cv::Point(cur_match.x, cur_match.y), m_lm_detector->getT(0), current_rgb_template);
     cv::imshow("LineMod Result", display);
     waitKey(100);
-
+#endif
     int match_x = cur_match.x - current_template[0].offset_x;
     int match_y = cur_match.y - current_template[0].offset_y;
 
-    string current_view_path = m_str_lm_feature_path + string("/view/") + to_string(cur_match.template_id) + string(".txt");
     float viewCorrdInfo[13];
-//    LoadArray(current_view_path, &viewCorrdInfo[0], 13);
-//    memcpy(&viewCorrdInfo[0], Template)
     vector<float> vv = m_lm_detector->getPoseInfo(cur_match.template_id);
     memcpy(&viewCorrdInfo[0], vv.data(), sizeof(float) * 13);
-//    viewCorrdInfo[9] = - viewCorrdInfo[6];
-//    viewCorrdInfo[10] = - viewCorrdInfo[7];
-//    viewCorrdInfo[11] = - viewCorrdInfo[8];
-//    viewCorrdInfo[12] = vv
+
 
     Eigen::Matrix3f view_axis;// = cv::Matx33f::eye();
     cv::Matx33f r_match = cv::Matx33f::eye();
@@ -148,7 +152,7 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
         }
         t_match[ii] = d_match * viewCorrdInfo[9 + ii];
     }
-    std::string  filename_depth_model = m_str_lm_feature_path + string("/depth/") + to_string(cur_match.template_id) + string(".png");
+    std::string  filename_depth_model = m_str_lm_feature_path + string("/depth/") + ato_string(cur_match.template_id) + string(".png");
     Mat depImg_model_raw = imread(filename_depth_model, -1);
     float model_center_val = (float)(depImg_model_raw.at<uint16_t>(depImg_model_raw.rows/2, depImg_model_raw.cols/2))/10000;
     d_match -= model_center_val;
@@ -212,9 +216,9 @@ int CObjRecoLmICP::PrepareInputData(const TImageU &tRGB, const TImageU16& tDepth
     m_depth = TImage2Mat(tDepth, w, h, CV_16UC1, true);
 //    m_rgb = imread("/home/rlvc/Workspace/0_code/FEALESS/data/test/gray_0030.png");
 //    m_depth = imread("/home/rlvc/Workspace/0_code/FEALESS/data/test/depth_0030.png", -1);
-    imshow("m_rgb", m_rgb);
-    imshow("m_depth", m_depth);
-    waitKey(100);
+//    imshow("m_rgb", m_rgb);
+//    imshow("m_depth", m_depth);
+//    waitKey(100);
 
     m_dCurTimeStamp = tRGB.dTimestamp;
     return 0;

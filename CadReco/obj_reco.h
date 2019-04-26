@@ -6,7 +6,7 @@
 //#include <opencv2/objdetect.hpp>
 //#include <opencv2/highgui.hpp>
 //#include "linemod_if.h"
-#include "../test/lotus_common.h"
+#include "lotus_common.h"
 //#include "detection.h"
 //#include "Eigen/Eigen"
 
