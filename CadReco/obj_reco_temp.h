@@ -1,5 +1,5 @@
-#ifndef __OBJ_RECO_H__
-#define __OBJ_RECO_H__
+#ifndef __OBJ_RECO_TEMP__
+#define __OBJ_RECO_TEMP__
 //#include <opencv2/core.hpp>
 //#include <opencv2/imgproc/imgproc_c.h> // cvFindContours
 //#include <opencv2/imgproc.hpp>
@@ -12,7 +12,7 @@
 
 //int Recognition(const TImageU &tRGB, const TImageU16& tDepth, const TCamIntrinsicParam &tCamIntrinsic, vector<TObjRecoResult> &vtResult);
 
-class LOTUS_RECO_EXPORT CObjReco
+class LOTUS_RECO_EXPORT CObjRecoCAD
 {
     public:
     enum EObjRecoType
@@ -22,10 +22,10 @@ class LOTUS_RECO_EXPORT CObjReco
                 EObjReco_BB8,     ///< unsupported
                 EObjReco_PoseNet  ///< unsupported
     };
-    virtual ~CObjReco() {};
+    virtual ~CObjRecoCAD() {};
 
-    static CObjReco *Create(EObjRecoType eType = EObjReco_LmICP);
-    static void Destroy(CObjReco *pHandle);
+    static CObjRecoCAD *Create(EObjRecoType eType = EObjReco_LmICP);
+    static void Destroy(CObjRecoCAD *pHandle);
     //training
     virtual int Train(const string &strDataBase, const TScanPackage &tScanPackage, const TTrainParam& tObjTrainParam) = 0;
 

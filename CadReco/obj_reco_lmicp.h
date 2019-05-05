@@ -1,6 +1,6 @@
 #ifndef __FEALESS_OBJ_RECO_LMICP_H__
 #define __FEALESS_OBJ_RECO_LMICP_H__
-#include "obj_reco.h"
+#include "obj_reco_temp.h"
 
 #include "opencv2/core.hpp"
 #include "linemod_if.h"
@@ -8,7 +8,7 @@
 using namespace cv;
 using namespace std;
 
-class CObjRecoLmICP : public CObjReco
+class CObjRecoLmICP : public CObjRecoCAD
 {
 public:
     CObjRecoLmICP();

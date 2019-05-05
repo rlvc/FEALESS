@@ -1,5 +1,5 @@
 #include <iostream>
-#include "obj_reco.h"
+#include "obj_reco_temp.h"
 #include "opencv2/opencv.hpp"
 #include "lotus_common.h"
 #include <librealsense2/rs.hpp>
@@ -18,7 +18,7 @@ void linemod_recon(const string &strConfigFile)
     namedWindow(depth_win,WINDOW_AUTOSIZE);
     rs2::colorizer c;
 #endif
-    CObjReco *ptReco = CObjReco::Create(CObjReco::EObjReco_LmICP);
+    CObjRecoCAD *ptReco = CObjRecoCAD::Create(CObjRecoCAD::EObjReco_LmICP);
     ptReco->AddObj(strConfigFile);
 
     TCamIntrinsicParam t_cam_param;
@@ -93,7 +93,7 @@ void linemod_recon(const string &strConfigFile)
         cv::imshow(final_win, display);
         waitKey(100);
     }
-    CObjReco::Destroy(ptReco);
+    CObjRecoCAD::Destroy(ptReco);
     return;
 }
 

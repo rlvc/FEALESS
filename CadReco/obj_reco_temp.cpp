@@ -1,16 +1,16 @@
-#include "obj_reco.h"
+#include "obj_reco_temp.h"
 #include "obj_reco_lmicp.h"
 ////#include "log_def.h"
 //#include <iosfwd>
 //#define LIB_VERSION "3.1.1"
-//string CObjReco::GetVersion()
+//string CObjRecoCAD::GetVersion()
 //{
 //    std::stringstream s;
 //    s << "Lenovo 3D Object Recognition. Version " << LIB_VERSION " Compile Time: " __DATE__ " " << __TIME__;
 //    return s.str();
 //}
 
-CObjReco * CObjReco::Create(EObjRecoType eType)
+CObjRecoCAD * CObjRecoCAD::Create(EObjRecoType eType)
 {
     switch (eType)
     {
@@ -29,7 +29,7 @@ CObjReco * CObjReco::Create(EObjRecoType eType)
     return nullptr;
 }
 
-void CObjReco::Destroy(CObjReco * pHandle)
+void CObjRecoCAD::Destroy(CObjRecoCAD * pHandle)
 {
     delete pHandle;
 }
