@@ -1618,12 +1618,12 @@ int Detector::addPoseInfo(const float* const pose_info)
 std::vector<float> Detector::getPoseInfo(int template_id)
 {
     std::vector<float> v_pose_info = TemplatePoseInfo[template_id];
-    v_pose_info.erase(v_pose_info.begin()+3);
-    v_pose_info.erase(v_pose_info.begin()+7 - 1);
-    v_pose_info.erase(v_pose_info.begin()+11 - 2);
-    v_pose_info.insert(v_pose_info.begin() + 9, -v_pose_info[6]);
-    v_pose_info.insert(v_pose_info.begin() + 10, -v_pose_info[7]);
-    v_pose_info.insert(v_pose_info.begin() + 11, -v_pose_info[8]);
+//    v_pose_info.erase(v_pose_info.begin()+3);
+//    v_pose_info.erase(v_pose_info.begin()+7 - 1);
+//    v_pose_info.erase(v_pose_info.begin()+11 - 2);
+//    v_pose_info.insert(v_pose_info.begin() + 9, -v_pose_info[6]);
+//    v_pose_info.insert(v_pose_info.begin() + 10, -v_pose_info[7]);
+//    v_pose_info.insert(v_pose_info.begin() + 11, -v_pose_info[8]);
     return v_pose_info;
 }
 
