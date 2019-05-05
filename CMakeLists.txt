@@ -8,7 +8,7 @@ set(KCF ${PROJECT_SOURCE_DIR}/kcf_tracker)
 set(ICP_DIR ${PROJECT_SOURCE_DIR}/ICP)
 #test
 set(TEST ${PROJECT_SOURCE_DIR}/test)
-set(OpenCV_DIR /home/rlvc/Workspace/0_code/cup/cup.third.party/OpenCV/Linux)
+set(OpenCV_DIR D:/codeline/cup.third.party/OpenCV/Windows)
 find_package(OpenCV REQUIRED)
 OPTION(TEST_DETECT "NEED PCL FOR DEBUG" OFF)
 IF(TEST_DETECT)

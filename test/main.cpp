@@ -6,7 +6,7 @@ using namespace std;
 typedef void(*CupFunction)(const string&);
 void linemod_train(const string &strConfigFile);
 void linemod_recon(const string &strConfigFile);
-void linemod_acq(const string &strConfigFile);
+//void linemod_acq(const string &strConfigFile);
 //void img_train(const string &strConfigFile);
 //void img_recon(const string &strConfigFile);
 //void qrc_recon(const string &strConfigFile);
@@ -52,7 +52,7 @@ __Registerer_##func g_registerer_##func; \
 
 RegisterBrewFunction(linemod_train);
 RegisterBrewFunction(linemod_recon);
-RegisterBrewFunction(linemod_acq);
+//RegisterBrewFunction(linemod_acq);
 
 static CupFunction GetCupFunction(string& strFuncName)
 {

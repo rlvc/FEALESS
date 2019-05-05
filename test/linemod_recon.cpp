@@ -5,10 +5,10 @@
 #include "lotus_common.h"
 #include "my_timer.h"
 #include "BoxExtractor.h"
-#include <librealsense2/rs.hpp>
+//#include <librealsense2/rs.hpp>
 #include "model_mesh.h"
 #include "detection.h"
-#include "Eigen/Eigen"
+#include "../../cup.third.party/Eigen/Eigen/Eigen"
 using namespace std;
 using namespace cv;
 static bool LoadArray(string strFile, float *pfBuf, int nLen);
@@ -52,6 +52,7 @@ void linemod_recon(const string &strConfigFile)
     Mat aligned_depth_image = imread(strDepthImg, IMREAD_UNCHANGED);
     Mat aligned_color_image = imread(strGrayImg, IMREAD_UNCHANGED);
 
+    Mat display_lm = aligned_color_image.clone();
     Mat display = aligned_color_image.clone();
     std::vector<cv::Mat> sources;
     sources.push_back(aligned_color_image);
@@ -79,14 +80,14 @@ void linemod_recon(const string &strConfigFile)
             current_template = imread(current_template_path);
             // Draw matching template
             const std::vector<cup_linemod::Template>& templates = detector->getTemplates(m.class_id, m.template_id);
-            drawResponse(templates, num_modalities, display, cv::Point(m.x, m.y), detector->getT(0), current_template);
+            drawResponse(templates, num_modalities, display_lm, cv::Point(m.x, m.y), detector->getT(0), current_template);
             //drawResponse(templates, num_modalities, display, cv::Point(m.x, m.y), detector->getT(0));
 
         }
     }
     match_timer.stop();
     printf("Matching: %.2fs\n", match_timer.time());
-    cv::imshow(color_win, display);
+    cv::imshow(color_win, display_lm);
     waitKey(1000);
     cup_linemod::Match m = matches[0];
     std::string  filename_depth_model = strConfigFile + string("/depth/") + to_string(m.template_id) + string(".png");
@@ -96,38 +97,59 @@ void linemod_recon(const string &strConfigFile)
 
     int match_x = m.x - templates11[0].offset_x;
     int match_y = m.y - templates11[0].offset_y;
+    cv::Rect_<int> rect_model_raw(templates11[0].offset_x, templates11[0].offset_y, templates11[0].width, templates11[0].height);
+    cv::Rect_<int> rect_ref_raw(rect_model_raw);
+    rect_ref_raw.x += match_x;
+    rect_ref_raw.y += match_y;
+
+    string current_template_path_show_crop = strConfigFile + string("/gray/") + to_string(m.template_id) + string(".png");
+    Mat current_template_show_crop = imread(current_template_path_show_crop);
+    cv::imshow("ref_show_crop", display(rect_ref_raw));
+    cv::imshow("model_show_crop", current_template_show_crop(rect_model_raw));
+    waitKey(10);
 
     int   icp_it_thr = 10;
     float dist_mean_thr = 0.0f; //-- 0.04f; // -- 0.0f;
     float dist_diff_thr = 0.001f; //--0.0f;
-
+    
+    cv::Matx33f r_match;
+    cv::Vec3f t_match;
+    string current_pose_path = strConfigFile + string("/pose/") + to_string(m.template_id) + string(".txt");
+    float poseCorrdInfo[12];
+    LoadArray(current_pose_path, &poseCorrdInfo[0], 12);   
+    float *pfRow = &poseCorrdInfo[0];
+    for (int i1 = 0; i1 < 3; i1++, pfRow += 4)
+    {
+        for (int j1 = 0; j1 < 3; j1++) r_match(i1, j1) = pfRow[j1];
+        t_match(i1) = pfRow[3] / 100;
+    }
+#if 0
     string current_view_path = strConfigFile + string("/view/") + to_string(m.template_id) + string(".txt");
     float viewCorrdInfo[13];
     LoadArray(current_view_path, &viewCorrdInfo[0], 13);
-
-    Eigen::Matrix3f view_axis;// = cv::Matx33f::eye();
-    cv::Matx33f r_match = cv::Matx33f::eye();
-    cv::Vec3f t_match = cv::Vec3f(3, 0, 0);
-    float d_match = viewCorrdInfo[12]/1000;
-    for (int ii = 0; ii < 3; ++ii) {
-        for (int jj = 0; jj < 3; ++jj) {
-            view_axis(ii,jj) = viewCorrdInfo[jj * 3 + ii];
-        }
-    }
-    Eigen::Matrix3f view_axis1 = view_axis.inverse();
-    for (int ii = 0; ii < 3; ++ii) {
-        for (int jj = 0; jj < 3; ++jj) {
-            r_match(ii,jj) = view_axis1(ii,jj);
-        }
-        t_match[ii] = d_match * viewCorrdInfo[9 + ii];
-    }
+    //Eigen::Matrix3f view_axis;// = cv::Matx33f::eye();
+    //cv::Matx33f r_match = cv::Matx33f::eye();
+    //cv::Vec3f t_match = cv::Vec3f(3, 0, 0);
+    float d_match = viewCorrdInfo[12] / 1000;
+    //for (int ii = 0; ii < 3; ++ii) {
+    //    for (int jj = 0; jj < 3; ++jj) {
+    //        view_axis(ii,jj) = viewCorrdInfo[jj * 3 + ii];
+    //    }
+    //}
+    //Eigen::Matrix3f view_axis1 = view_axis;// .inverse();
+    //for (int ii = 0; ii < 3; ++ii) {
+    //    for (int jj = 0; jj < 3; ++jj) {
+    //        r_match(ii,jj) = view_axis1(ii,jj);
+    //    }
+    //    t_match[ii] = d_match * viewCorrdInfo[9 + ii];
+    //}
     Mat im = imread(filename_depth_model, -1);
     float model_center_val = (float)(im.at<uint16_t>(im.rows/2, im.cols/2))/10000;
     d_match -= model_center_val;
-
-
-    cv::Vec3f T_final;cv::Matx33f R_final;
-    detection(filename_depth_model, filename_depth_ref, match_x, match_y, \
+#endif
+    float d_match = -0.0278935730;
+    cv::Vec3f T_final; cv::Matx33f R_final;
+    detection(filename_depth_model, filename_depth_ref, rect_model_raw, rect_ref_raw, \
         icp_it_thr, dist_mean_thr, dist_diff_thr, \
         r_match, t_match, d_match, T_final, R_final);
 
