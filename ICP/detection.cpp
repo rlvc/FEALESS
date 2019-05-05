@@ -5,7 +5,7 @@
 #include <pcl/io/pcd_io.h>
 #endif
 #include "../ICP/common.h"
-#include "../ICP/data_preprocess.h"
+//#include "../ICP/data_preprocess.h"
 #include "../ICP/ICP.h"
 
 void detection(const string &filename_depth_model, const string &filename_depth_ref, \

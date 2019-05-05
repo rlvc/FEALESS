@@ -60,8 +60,8 @@ void CModelMesh::SetCamIntrinsic(TCamIntrinsicParam tCamIntrinsic)
 
 void CModelMesh::Mesh(Mat &img, Mat R, Mat t, Scalar color)
 {
-	Mat c = R.t() * t;
-	Point3f vp(c.at<double>(0), c.at<double>(1), c.at<double>(2));
+	//Mat c = R.t() * t;
+	//Point3f vp(c.at<double>(0), c.at<double>(1), c.at<double>(2));
 
 	Mat r;
 	Rodrigues(R, r);
