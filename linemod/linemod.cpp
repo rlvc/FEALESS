@@ -883,52 +883,10 @@ static void orUnaligned8u(const uchar * src, const int src_stride,
                    uchar * dst, const int dst_stride,
                    const int width, const int height)
 {
-#if CV_SSE2
-  volatile bool haveSSE2 = checkHardwareSupport(CPU_SSE2);
-#if CV_SSE3
-  volatile bool haveSSE3 = checkHardwareSupport(CPU_SSE3);
-#endif
-  bool src_aligned = reinterpret_cast<unsigned long long>(src) % 16 == 0;
-#endif
-
   for (int r = 0; r < height; ++r)
   {
     int c = 0;
 
-#if CV_SSE2
-    // Use aligned loads if possible
-    if (haveSSE2 && src_aligned)
-    {
-      for ( ; c < width - 15; c += 16)
-      {
-        const __m128i* src_ptr = reinterpret_cast<const __m128i*>(src + c);
-        __m128i* dst_ptr = reinterpret_cast<__m128i*>(dst + c);
-        *dst_ptr = _mm_or_si128(*dst_ptr, *src_ptr);
-      }
-    }
-#if CV_SSE3
-    // Use LDDQU for fast unaligned load
-    else if (haveSSE3)
-    {
-      for ( ; c < width - 15; c += 16)
-      {
-        __m128i val = _mm_lddqu_si128(reinterpret_cast<const __m128i*>(src + c));
-        __m128i* dst_ptr = reinterpret_cast<__m128i*>(dst + c);
-        *dst_ptr = _mm_or_si128(*dst_ptr, val);
-      }
-    }
-#endif
-    // Fall back to MOVDQU
-    else if (haveSSE2)
-    {
-      for ( ; c < width - 15; c += 16)
-      {
-        __m128i val = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + c));
-        __m128i* dst_ptr = reinterpret_cast<__m128i*>(dst + c);
-        *dst_ptr = _mm_or_si128(*dst_ptr, val);
-      }
-    }
-#endif
     for ( ; c < width; ++c)
       dst[c] |= src[c];
 
@@ -1003,32 +961,6 @@ static void computeResponseMaps(const Mat& src, std::vector<Mat>& response_maps)
     }
   }
 
-#if CV_SSSE3
-  volatile bool haveSSSE3 = checkHardwareSupport(CV_CPU_SSSE3);
-  if (haveSSSE3)
-  {
-    const __m128i* lut = reinterpret_cast<const __m128i*>(SIMILARITY_LUT);
-    for (int ori = 0; ori < 8; ++ori)
-    {
-      __m128i* map_data = response_maps[ori].ptr<__m128i>();
-      __m128i* lsb4_data = lsb4.ptr<__m128i>();
-      __m128i* msb4_data = msb4.ptr<__m128i>();
-
-      // Precompute the 2D response map S_i (section 2.4)
-      for (int i = 0; i < (src.rows * src.cols) / 16; ++i)
-      {
-        // Using SSE shuffle for table lookup on 4 orientations at a time
-        // The most/least significant 4 bits are used as the LUT index
-        __m128i res1 = _mm_shuffle_epi8(lut[2*ori + 0], lsb4_data[i]);
-        __m128i res2 = _mm_shuffle_epi8(lut[2*ori + 1], msb4_data[i]);
-
-        // Combine the results into a single similarity score
-        map_data[i] = _mm_max_epu8(res1, res2);
-      }
-    }
-  }
-  else
-#endif
   {
     // For each of the 8 quantized orientations...
     for (int ori = 0; ori < 8; ++ori)
@@ -1160,12 +1092,6 @@ static void similarity(const std::vector<Mat>& linear_memories, const Template& 
   dst = Mat::zeros(H, W, CV_8U);
   uchar* dst_ptr = dst.ptr<uchar>();
 
-#if CV_SSE2
-  volatile bool haveSSE2 = checkHardwareSupport(CV_CPU_SSE2);
-#if CV_SSE3
-  volatile bool haveSSE3 = checkHardwareSupport(CV_CPU_SSE3);
-#endif
-#endif
 
   // Compute the similarity measure for this template by accumulating the contribution of
   // each feature
@@ -1183,31 +1109,7 @@ static void similarity(const std::vector<Mat>& linear_memories, const Template& 
     // Now we do an aligned/unaligned add of dst_ptr and lm_ptr with template_positions elements
     int j = 0;
     // Process responses 16 at a time if vectorization possible
-#if CV_SSE2
-#if CV_SSE3
-    if (haveSSE3)
-    {
-      // LDDQU may be more efficient than MOVDQU for unaligned load of next 16 responses
-      for ( ; j < template_positions - 15; j += 16)
-      {
-        __m128i responses = _mm_lddqu_si128(reinterpret_cast<const __m128i*>(lm_ptr + j));
-        __m128i* dst_ptr_sse = reinterpret_cast<__m128i*>(dst_ptr + j);
-        *dst_ptr_sse = _mm_add_epi8(*dst_ptr_sse, responses);
-      }
-    }
-    else
-#endif
-    if (haveSSE2)
-    {
-      // Fall back to MOVDQU
-      for ( ; j < template_positions - 15; j += 16)
-      {
-        __m128i responses = _mm_loadu_si128(reinterpret_cast<const __m128i*>(lm_ptr + j));
-        __m128i* dst_ptr_sse = reinterpret_cast<__m128i*>(dst_ptr + j);
-        *dst_ptr_sse = _mm_add_epi8(*dst_ptr_sse, responses);
-      }
-    }
-#endif
+
     for ( ; j < template_positions; ++j)
       dst_ptr[j] = uchar(dst_ptr[j] + lm_ptr[j]);
   }
@@ -1240,14 +1142,6 @@ static void similarityLocal(const std::vector<Mat>& linear_memories, const Templ
   int offset_x = (center.x / T - 8) * T;
   int offset_y = (center.y / T - 8) * T;
 
-#if CV_SSE2
-  volatile bool haveSSE2 = checkHardwareSupport(CV_CPU_SSE2);
-#if CV_SSE3
-  volatile bool haveSSE3 = checkHardwareSupport(CV_CPU_SSE3);
-#endif
-  __m128i* dst_ptr_sse = dst.ptr<__m128i>();
-#endif
-
   for (int i = 0; i < (int)templ.features.size(); ++i)
   {
     Feature f = templ.features[i];
@@ -1260,32 +1154,6 @@ static void similarityLocal(const std::vector<Mat>& linear_memories, const Templ
     const uchar* lm_ptr = accessLinearMemory(linear_memories, f, T, W);
 
     // Process whole row at a time if vectorization possible
-#if CV_SSE2
-#if CV_SSE3
-    if (haveSSE3)
-    {
-      // LDDQU may be more efficient than MOVDQU for unaligned load of 16 responses from current row
-      for (int row = 0; row < 16; ++row)
-      {
-        __m128i aligned = _mm_lddqu_si128(reinterpret_cast<const __m128i*>(lm_ptr));
-        dst_ptr_sse[row] = _mm_add_epi8(dst_ptr_sse[row], aligned);
-        lm_ptr += W; // Step to next row
-      }
-    }
-    else
-#endif
-    if (haveSSE2)
-    {
-      // Fall back to MOVDQU
-      for (int row = 0; row < 16; ++row)
-      {
-        __m128i aligned = _mm_loadu_si128(reinterpret_cast<const __m128i*>(lm_ptr));
-        dst_ptr_sse[row] = _mm_add_epi8(dst_ptr_sse[row], aligned);
-        lm_ptr += W; // Step to next row
-      }
-    }
-    else
-#endif
     {
       uchar* dst_ptr = dst.ptr<uchar>();
       for (int row = 0; row < 16; ++row)
