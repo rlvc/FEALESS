@@ -2,7 +2,7 @@
 #include "obj_reco_temp.h"
 #include "opencv2/opencv.hpp"
 #include "lotus_common.h"
-#include <librealsense2/rs.hpp>
+//#include <librealsense2/rs.hpp>
 #include "model_mesh.h"
 using namespace std;
 using namespace cv;
@@ -22,51 +22,31 @@ void linemod_recon(const string &strConfigFile)
     ptReco->AddObj(strConfigFile);
 
     TCamIntrinsicParam t_cam_param;
-    t_cam_param.nWidth = 640; t_cam_param.nHeight = 480; t_cam_param.dFx = 671.0f; t_cam_param.dFy = 671.0f; t_cam_param.dCx = 320.0; t_cam_param.dCy = 240.0f;
+    t_cam_param.nWidth = 640; t_cam_param.nHeight = 480; t_cam_param.dFx = 608; t_cam_param.dFy = 608; t_cam_param.dCx = 320.0; t_cam_param.dCy = 240.0f;
 
 
     const char* final_win="final_Image";
     namedWindow(final_win,WINDOW_AUTOSIZE);
 
-    rs2::pipeline pipe;
-    rs2::config pipe_config;
-    pipe_config.enable_stream(RS2_STREAM_DEPTH,640,480,RS2_FORMAT_Z16,30);
-    pipe_config.enable_stream(RS2_STREAM_COLOR,640,480,RS2_FORMAT_BGR8,30);
-    pipe.start(pipe_config);
-    rs2_stream align_to = RS2_STREAM_COLOR;
-    rs2::align align(align_to);
-
     TImageU tRGB;
     TImageU16 tDepth;
     int nFrame = 1;
-    while ( getWindowProperty(final_win, WND_PROP_AUTOSIZE) >= 0) // Application still alive?
+    int file_index = 1555694920;
+    while (file_index <= 1555694920 && getWindowProperty(final_win, WND_PROP_AUTOSIZE) >= 0) // Application still alive?
     {
-        rs2::frameset frameset = pipe.wait_for_frames();
-        auto processed = align.process(frameset);
-
-        rs2::frame aligned_color_frame = processed.get_color_frame();
-        rs2::frame aligned_depth_frame = processed.get_depth_frame();
-
-//        rs2::pointcloud pc;
-//        rs2::points points = pc.calculate(aligned_depth_frame);
-
-        //获取宽高
-        tDepth.nWidth = aligned_depth_frame.as<rs2::video_frame>().get_width();
-        tDepth.nHeight = aligned_depth_frame.as<rs2::video_frame>().get_height();
-        tDepth.dTimestamp = (double)nFrame * 40;
-        tRGB.nWidth = aligned_color_frame.as<rs2::video_frame>().get_width();
-        tRGB.nHeight = aligned_color_frame.as<rs2::video_frame>().get_height();
-        tRGB.dTimestamp = (double)nFrame * 40;
-        nFrame ++;
-        if (!aligned_depth_frame || !aligned_color_frame)
-        {
-            continue;
-        }
         //创建OPENCV类型 并传入数据
-        Mat aligned_depth_image(Size(tDepth.nWidth,tDepth.nHeight),CV_16UC1,(void*)aligned_depth_frame.get_data(),Mat::AUTO_STEP);
-        Mat aligned_color_image(Size(tRGB.nWidth,tRGB.nHeight),CV_8UC3,(void*)aligned_color_frame.get_data(),Mat::AUTO_STEP);
+        Mat aligned_depth_image = imread(string("D:/codeline/FEALESS/data/jianhua/DepthAlign/") + to_string(file_index) + string(".png"), -1);
+        Mat aligned_color_image = imread(string("D:/codeline/FEALESS/data/jianhua/BGR/") + to_string(file_index) + string(".png"), -1);
+        cout << file_index << endl;
+        file_index++;
         tRGB.pData = aligned_color_image.data;
         tDepth.pData = (unsigned short int*)(aligned_depth_image.data);
+        tDepth.nWidth = aligned_depth_image.cols;
+        tDepth.nHeight = aligned_depth_image.rows;
+        tDepth.dTimestamp = (double)nFrame * 40;
+        tRGB.nWidth = aligned_color_image.cols;
+        tRGB.nHeight = aligned_color_image.rows;
+        tRGB.dTimestamp = (double)nFrame * 40;
 #ifdef TEST_DETECT
         rs2::frame depth_show = aligned_depth_frame.apply_filter(c);
         Mat color_depth_image(Size(color_w,color_h),CV_8UC3,(void*)depth_show.get_data(),Mat::AUTO_STEP);
@@ -75,6 +55,9 @@ void linemod_recon(const string &strConfigFile)
 
         ptReco->Recognition(tRGB, tDepth, t_cam_param, vtResult);
         if(vtResult.size() == 0){
+            Mat display_f = aligned_color_image.clone();
+            cv::imshow("failed", display_f);
+            waitKey(1000);
             continue;
         }
         Mat display = aligned_color_image.clone();
@@ -91,7 +74,7 @@ void linemod_recon(const string &strConfigFile)
             mTag2Meshes[vtResult[i].strObjTag].Mesh(display, P, colors[i&3]);
         }
         cv::imshow(final_win, display);
-        waitKey(100);
+        waitKey(1000);
     }
     CObjRecoCAD::Destroy(ptReco);
     return;

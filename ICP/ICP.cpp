@@ -73,8 +73,8 @@ float getL2distClouds(const std::vector<cv::Vec3f> &model, const std::vector<cv:
     ++counter;
   }
 
-  cout << "counter: " << counter << endl;
-  cout << "nbr_inliers: " << nbr_inliers << endl << endl;
+  //cout << "counter: " << counter << endl;
+  //cout << "nbr_inliers: " << nbr_inliers << endl << endl;
 
   if (counter > 0)
   {
@@ -114,7 +114,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
   float dist_mean = 0.0f;
   px_inliers_ratio = getL2distClouds(pts_model, pts_ref, dist_mean);
 
-  cout << "dist_mean: " << dist_mean << endl << endl;
+  //cout << "dist_mean: " << dist_mean << endl << endl;
   //The difference between two previously obtained mean distances between the reference and the model point clouds
   float dist_diff = std::numeric_limits<float>::max();
   //the number of performed iterations
@@ -123,7 +123,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
   {
     ++iter;
 
-    cout << "-----------iter: " << iter << "-----------" << endl;
+    //cout << "-----------iter: " << iter << "-----------" << endl;
 
     //subsample points from the match and ref clouds
     if (pts_model.empty() || pts_ref.empty())
@@ -167,8 +167,8 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     px_inliers_ratio = getL2distClouds(pts_model, pts_ref, dist_mean, 3 * dist_mean);
     dist_diff -= dist_mean;
     
-    cout << "dist_mean: " << dist_mean << endl;
-    cout << "dist_diff: " << dist_diff << endl;
+    //cout << "dist_mean: " << dist_mean << endl;
+    //cout << "dist_diff: " << dist_diff << endl;
     cout << endl;
     //update the translation matrix: turn to opposite direction at first and then do translation
     T = R_optimal * T;

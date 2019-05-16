@@ -1,7 +1,7 @@
 #  minimum required cmake version: 3.1.0
 cmake_minimum_required(VERSION 3.1.0)
 
-project(FEALESS)
+project(FEALESS_Alg)
 #modules
 set(LINEMOD ${PROJECT_SOURCE_DIR}/linemod)
 set(KCF ${PROJECT_SOURCE_DIR}/kcf_tracker)

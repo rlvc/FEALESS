@@ -238,21 +238,21 @@ void initInternalMat(cv::Mat_<float> & K)
         return;
     }
 
-    float  val[] = {671, 0, 320, 0, 671, 240, 0, 0, 1};
+    float  val[] = {608, 0, 320, 0, 608, 240, 0, 0, 1};
     
-    cout << "------------initInternalMat -----------\n";
+    //cout << "------------initInternalMat -----------\n";
     for (int i=0; i<K.rows; i++)
     {
         for (int j=0; j<K.cols; j++)
         {
             K.at<float>(i, j) = *(val+i*K.rows+j);
-            cout << K.at<float>(i, j) << '\t';
+            //cout << K.at<float>(i, j) << '\t';
         }
         
-        cout << endl;
+        //cout << endl;
     }
 
-    cout << endl;
+    //cout << endl;
 }
 
 /** get 3D points out of the image */

@@ -1,5 +1,5 @@
 #include "obj_reco_lmicp.h"
-#include "Eigen/Eigen"
+#include "../../cup.third.party/Eigen/Eigen/Eigen"
 #include <fstream>
 #include "detection.h"
 
@@ -120,14 +120,14 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     cur_result.strObjTag = cur_match.class_id;
     const std::vector<cup_linemod::Template>& current_template = m_lm_detector->getTemplates(cur_match.class_id, cur_match.template_id);
 
-#ifdef TEST_DETECT
+//#ifdef TEST_DETECT
     string current_rgb_template_path = m_str_lm_feature_path + string("/gray/") + ato_string(cur_match.template_id) + string(".png");
     Mat current_rgb_template = imread(current_rgb_template_path);
     Mat display = m_rgb.clone();
     drawResponse(current_template, (int)m_lm_detector->getModalities().size(), display, cv::Point(cur_match.x, cur_match.y), m_lm_detector->getT(0), current_rgb_template);
     cv::imshow("LineMod Result", display);
     waitKey(100);
-#endif
+//#endif
     int match_x = cur_match.x - current_template[0].offset_x;
     int match_y = cur_match.y - current_template[0].offset_y;
     cv::Rect_<int> rect_model_raw(current_template[0].offset_x, current_template[0].offset_y, current_template[0].width, current_template[0].height);
