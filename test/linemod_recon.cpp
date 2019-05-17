@@ -31,12 +31,12 @@ void linemod_recon(const string &strConfigFile)
     TImageU tRGB;
     TImageU16 tDepth;
     int nFrame = 1;
-    int file_index = 1555694920;
-    while (file_index <= 1555694920 && getWindowProperty(final_win, WND_PROP_AUTOSIZE) >= 0) // Application still alive?
+    int file_index = 1557736959;
+    while (file_index <= 1557736985 && getWindowProperty(final_win, WND_PROP_AUTOSIZE) >= 0) // Application still alive?
     {
         //创建OPENCV类型 并传入数据
-        Mat aligned_depth_image = imread(string("D:/codeline/FEALESS/data/jianhua/DepthAlign/") + to_string(file_index) + string(".png"), -1);
-        Mat aligned_color_image = imread(string("D:/codeline/FEALESS/data/jianhua/BGR/") + to_string(file_index) + string(".png"), -1);
+        Mat aligned_depth_image = imread(strConfigFile + string("/DepthAlign/") + to_string(file_index) + string(".png"), -1);
+        Mat aligned_color_image = imread(strConfigFile + string("/BGR/") + to_string(file_index) + string(".png"), -1);
         cout << file_index << endl;
         file_index++;
         tRGB.pData = aligned_color_image.data;
