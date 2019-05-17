@@ -1,6 +1,6 @@
 #ifndef  COMMON_H
 #define  COMMON_H
-#ifdef TEST_DETECT
+#ifdef PCL_DEBUG
 #include <pcl/common/common_headers.h>
 #endif
 #include <opencv2/core/core.hpp>
@@ -24,7 +24,7 @@ extern void show_rect_info(const cv::Rect_<int> &rect, string rect_name);
 extern void show_image(const cv::Mat &img, string img_name, bool isWaitKey = true);
 
 
-#ifdef TEST_DETECT
+#ifdef PCL_DEBUG
 /**
  * @ brief  Show the regular point cloud ()
  * @param  depth_3d[in]       the regular point cloud 
@@ -46,6 +46,7 @@ extern void show_point_cloud_pcl_with_color(pcl::PointCloud<pcl::PointXYZ>::Cons
 extern void initInternalMat(cv::Mat_<float> & K); //-- 初始化内参矩阵
 extern bool is_vec3f_valid(const cv::Vec3f & vec);
 extern float matToVec(const cv::Mat_<cv::Vec3f> &src, std::vector<cv::Vec3f>& pts);
+extern float vecToMat(const std::vector<cv::Vec3f>& pts, cv::Mat_<cv::Vec3f> &dst);
 
 extern void matToVec(const cv::Mat_<cv::Vec3f> &src_ref, \
                const cv::Mat_<cv::Vec3f> &src_mod, \

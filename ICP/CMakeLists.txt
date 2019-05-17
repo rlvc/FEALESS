@@ -8,7 +8,7 @@ add_library(ICP STATIC ${DIR_ICP_HEADER} ${DIR_ICP_SOURCE} )
 
 target_link_libraries(ICP ${OpenCV_LIBS})
 
-IF(TEST_DETECT)
+IF(PCL_DEBUG)
 include_directories(${PCL_INCLUDE_DIRS})
 target_link_libraries(${PCL_LIBRARIES})
-ENDIF(TEST_DETECT)
+ENDIF(PCL_DEBUG)

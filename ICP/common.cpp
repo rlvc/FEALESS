@@ -2,7 +2,7 @@
 #include  <iostream>
 using namespace std;
 #include <opencv2/highgui/highgui.hpp>
-#ifdef TEST_DETECT
+#ifdef PCL_DEBUG
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/io/pcd_io.h>
 #endif
@@ -51,7 +51,7 @@ void show_image(const cv::Mat &img, string img_name, bool isWaitKey)
 }
 
 
-#ifdef TEST_DETECT
+#ifdef PCL_DEBUG
 extern void show_mat_vec3f(const cv::Mat_<cv::Vec3f> &depth_3d, string depth_3d_name, bool isWaitKey)
 {
     if (depth_3d.empty())
@@ -229,6 +229,36 @@ float matToVec(const cv::Mat_<cv::Vec3f> &src, std::vector<cv::Vec3f>& pts)
     return ratio;
 }
 
+float vecToMat(const std::vector<cv::Vec3f>& src, cv::Mat_<cv::Vec3f> &dst)
+{
+    if (src.empty())
+    {
+        cout << "vecToMat: vec is Empty" << endl;
+        return -1;
+    }
+
+    std::vector<cv::Vec3f> pts_valid;
+    int px_missing = 0;
+
+    size_t  size = src.size();
+    for (int i=0; i<size; i++)
+    {
+        if (! is_vec3f_valid(src[i]) )
+        {
+            ++px_missing;
+            continue;
+        }
+        
+        pts_valid.push_back(src[i]);      
+    }
+
+    dst = cv::Mat(pts_valid);
+    pts_valid.clear();
+    
+    float ratio = static_cast<float>(px_missing) / static_cast<float>(pts_valid.size());
+    return ratio;
+}
+
 //-- 初始化内参矩阵
 void initInternalMat(cv::Mat_<float> & K)
 {
@@ -238,21 +268,21 @@ void initInternalMat(cv::Mat_<float> & K)
         return;
     }
 
-    float  val[] = {608, 0, 320, 0, 608, 240, 0, 0, 1};
+    float  val[] = {671, 0, 320, 0, 671, 240, 0, 0, 1};
     
-    //cout << "------------initInternalMat -----------\n";
+    cout << "------------initInternalMat -----------\n";
     for (int i=0; i<K.rows; i++)
     {
         for (int j=0; j<K.cols; j++)
         {
             K.at<float>(i, j) = *(val+i*K.rows+j);
-            //cout << K.at<float>(i, j) << '\t';
+            cout << K.at<float>(i, j) << '\t';
         }
         
-        //cout << endl;
+        cout << endl;
     }
 
-    //cout << endl;
+    cout << endl;
 }
 
 /** get 3D points out of the image */
