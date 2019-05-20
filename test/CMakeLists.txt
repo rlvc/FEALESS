@@ -2,9 +2,8 @@ file(GLOB_RECURSE DIR_TEST_HEADER "*.h")
 file(GLOB_RECURSE DIR_TEST_SOURCE "*.cpp")
 source_group("Header" FILES ${DIR_TEST_HEADER})
 source_group("Source" FILES ${DIR_TEST_SOURCE})
-#strongly recommend to use the Eigen in the repo cup.third.party
-set(EIGEN3 ${PROJECT_SOURCE_DIR}/../cup/cup.third.party/Eigen)
-include_directories(./ ${OpenCV_INCLUDE_DIRS} ${LINEMOD} "${KCF}" ${CAD_RECO} ${ICP_DIR} ${EIGEN3})
+
+include_directories(./ ${OpenCV_INCLUDE_DIRS} ${LINEMOD} "${KCF}" ${CAD_RECO} ${ICP_DIR})
 add_executable(FEALESS ${DIR_TEST_HEADER} ${DIR_TEST_SOURCE})
 set_target_properties(FEALESS PROPERTIES DEBUG_POSTFIX "d")
 target_link_libraries(FEALESS Linemod KCFTracker CadReco ${OpenCV_LIBS} ICP)

@@ -1,5 +1,5 @@
 #include "obj_reco_lmicp.h"
-#include "../../cup.third.party/Eigen/Eigen/Eigen"
+#include "Eigen/Eigen"
 #include <fstream>
 #include "detection.h"
 
