@@ -1,14 +1,26 @@
 #ifndef __LINEMOD_HPP_M__
 #define __LINEMOD_HPP_M__
 
-#include "opencv2/core.hpp"
+#include "opencv2/opencv.hpp"
 #include <map>
 using namespace cv;
 /****************************************************************************************\
 *                                 LINE-MOD                                               *
 \****************************************************************************************/
-
-
+//#define ANDOIRD_LOG
+#ifdef ANDOIRD_LOG
+#include "android/log.h"
+#define LOG_TAG "LMICP"
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#else
+#include <stdio.h>
+#ifdef WIN32
+#define LOGD(format, ...) fprintf(stdout, "[INFO] "format, __VA_ARGS__);
+#else//gcc define
+#define LOGD(format, args...) {fprintf(stdout, "[INFO] ");fprintf(stdout, format, ##args);}
+#endif
+#endif
+#define SPOINT_SIZE 128
 namespace cup_linemod {
 
 //! @addtogroup rgbd
