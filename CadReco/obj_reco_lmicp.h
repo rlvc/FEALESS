@@ -23,6 +23,7 @@ public:
 private:
     int PrepareInputData(const TImageU &tRGB, const TImageU16& tDepth, const TCamIntrinsicParam &tCamIntrinsic);
     int SetCamIntrinsic(const TCamIntrinsicParam & tParam);
+    cv::Mat ComputePose(Mat depImg_model_raw, const int match_x, const int match_y, cv::Mat &Pose4x4);
 
 private:
     //camera intrinsic
