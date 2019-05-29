@@ -134,7 +134,7 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     cv::Rect_<int> rect_ref_raw(rect_model_raw);
     rect_ref_raw.x += match_x;
     rect_ref_raw.y += match_y;
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
     string current_rgb_template_path1 = m_str_lm_feature_path + string("/gray/") + to_string(cur_match.template_id) + string(".png");
     Mat current_rgb_template1 = imread(current_rgb_template_path1);
     Mat display1 = m_rgb.clone();

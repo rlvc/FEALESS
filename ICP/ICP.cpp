@@ -1,6 +1,6 @@
 #include "ICP.h"
 #include "opencv2/flann/flann.hpp"
-#ifndef PCL_DEBUG
+#ifndef NEED_PCL_DEBUG
 #include<iostream>
 #endif
 
@@ -116,11 +116,11 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
                          const float & dist_thr)
 {
 
-  //-- Çå¿ÕÏÈÇ°µÄ
+  //-- ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½
   pts_cor_model.clear();
   pts_cor_ref.clear();
 
-  //-- 1. ×ª»»µãÔÆÎªflann½ÓÊÜµÄ¸ñÊ½ 
+  //-- 1. ×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªflannï¿½ï¿½ï¿½ÜµÄ¸ï¿½Ê½ 
   size_t  size_model = pts_model.size();
   size_t  size_ref = pts_ref.size();
  
@@ -142,7 +142,7 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
 
   cout << "size_ref: " << size_ref << '\t' << "size_model: " << size_model << endl;
 
-  //-- 2. ÉèÖÃflann²ÎÊý£¬²¢²éÕÒ×î½üÁÚ 
+  //-- 2. ï¿½ï¿½ï¿½ï¿½flannï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
   cvflann::Index<cvflann::L2_Simple<float> > index(data_ref, cvflann::KDTreeSingleIndexParams(15));
 	index.buildIndex();
 	
@@ -152,7 +152,7 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
 	//index.knnSearch(p, indices, dists, knn, flann::SearchParams(512));
 	index.knnSearch(data_model, indices, dists, knn, cvflann::SearchParams());
 
-  //-- 3.·µ»Ø½á¹û
+  //-- 3.ï¿½ï¿½ï¿½Ø½ï¿½ï¿½
   //-- Find good matches
   std::vector< std::pair<int, int> > good_matches;
   for( int i = 0; i < size_model; i++ )
@@ -179,7 +179,7 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
     pts_cor_ref[i] = pts_ref[ good_matches[i].second ];  
   }
   
-	// ÊÍ·ÅÄÚ´æ
+	// ï¿½Í·ï¿½ï¿½Ú´ï¿½
 	delete[] data_ref.data;
 	delete[] data_model.data;
 	delete[] indices.data;
@@ -196,11 +196,11 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
                          const float & dist_thr)
 {
 
-  //-- Çå¿ÕÏÈÇ°µÄ
+  //-- ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½
   pts_cor_model.clear();
   pts_cor_ref.clear();
 
-  //-- 1. ×ª»»µãÔÆÎªflann½ÓÊÜµÄ¸ñÊ½ 
+  //-- 1. ×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªflannï¿½ï¿½ï¿½ÜµÄ¸ï¿½Ê½ 
   size_t  size_model = pts_model.size();
   size_t  size_ref = pts_ref.size();
  
@@ -215,7 +215,7 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
 
   cout << "size_ref: " << size_ref << '\t' << "size_model: " << size_model << endl;
 
-  //-- 2. ÉèÖÃflann²ÎÊý£¬²¢²éÕÒ×î½üÁÚ 
+  //-- 2. ï¿½ï¿½ï¿½ï¿½flannï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 //  cvflann::Index<cvflann::L2_Simple<float> > index(data_ref, cvflann::KDTreeSingleIndexParams(15));
 //	index.buildIndex();
 	
@@ -225,7 +225,7 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
 	//index.knnSearch(p, indices, dists, knn, flann::SearchParams(512));
 	index.knnSearch(data_model, indices, dists, knn, cvflann::SearchParams());
 /*
-  //-- 3.·µ»Ø½á¹û
+  //-- 3.ï¿½ï¿½ï¿½Ø½ï¿½ï¿½
   //-- Find good matches
   std::vector< std::pair<int, int> > good_matches;
   for( int i = 0; i < size_model; i++ )
@@ -252,14 +252,14 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
     pts_cor_ref[i] = pts_ref[ good_matches[i].second ];  
   }
   
-	// ÊÍ·ÅÄÚ´æ
+	// ï¿½Í·ï¿½ï¿½Ú´ï¿½
 //	delete[] data_ref.data;
 	delete[] data_model.data;
 	delete[] indices.data;
 	delete[] dists.data; 
   delete[] good_matches;
 */
-  //-- 3.·µ»Ø½á¹û
+  //-- 3.ï¿½ï¿½ï¿½Ø½ï¿½ï¿½
   //-- Find good matches
   for( int i = 0; i < size_model; i++ )
   { 
@@ -288,7 +288,7 @@ void printTimeOfICP(int64 Time[], int num)
  
 
  
-  //-- ´òÓ¡¸÷½×¶ÎÊ±¼ä
+  //-- ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½×¶ï¿½Ê±ï¿½ï¿½
   cout << "print time of each step of ICP --->>> " << endl;
   cout << "1. The time of computing point correspoinding: " << (Time[1] - Time[0]) / cv::getTickFrequency() * 1000<< " ms" << endl;
   cout << "2. The time of computing two centroids : " << (Time[2] - Time[1]) / cv::getTickFrequency() * 1000<< " ms" << endl;
@@ -381,7 +381,7 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
     transformPoints(pts_model, pts_model, R_optimal, T_optimal);
     
     Time[5] = cv::getTickCount();
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
     //-- show
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_model_trsf = getpclPtr(pts_model);
     stringstream ss;
@@ -411,7 +411,7 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
     R = R_optimal * R;
 
     Time[8] = cv::getTickCount();
-    //-- ÏÔÊ¾Ëã·¨Ê±¼ä
+    //-- ï¿½ï¿½Ê¾ï¿½ã·¨Ê±ï¿½ï¿½
     printTimeOfICP(Time, 9);
     //std::cout << " it " << iter << "/" << icp_it_th << " : " << std::fixed << dist_mean << " " << d_diff << " " << px_inliers_ratio << " " << pts_model.size() << std::endl;
   }
@@ -479,7 +479,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     //-- find the corresponding point pairs in two point cloud
     PointsCorresponding(pts_ref, pts_model, pts_cor_ref, pts_cor_model, 3*dist_mean);//-- dist_mean
     
-    //-- ¶ÔÓ¦µã¶ÔÌ«ÉÙ£¬¾ÍÖ±½Ó²»×öÁË
+    //-- ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Ì«ï¿½Ù£ï¿½ï¿½ï¿½Ö±ï¿½Ó²ï¿½ï¿½ï¿½ï¿½ï¿½
     if (pts_cor_ref.size() < ptNum_thr || pts_cor_model.size() < ptNum_thr )
     {
       iter = icp_it_thr; 
@@ -516,7 +516,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     transformPoints(pts_model, pts_model, R_optimal, T_optimal);
     Time[5] = cv::getTickCount();
     
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
     //-- show
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_model_trsf = getpclPtr(pts_model);
     stringstream ss;
@@ -524,7 +524,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     string  str = ss.str();
 
     show_point_cloud_pcl_with_color(pcl_cloud_model_trsf, str, 255, 255, 0);
-#endif // PCL_DEBUG
+#endif // NEED_PCL_DEBUG
 
     
     Time[6] = cv::getTickCount(); 
@@ -546,7 +546,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     //update the rotation matrix
     R = R_optimal * R;
     Time[8] = cv::getTickCount();
-    //-- ÏÔÊ¾Ëã·¨Ê±¼ä
+    //-- ï¿½ï¿½Ê¾ï¿½ã·¨Ê±ï¿½ï¿½
     printTimeOfICP(Time, 9);
     //std::cout << " it " << iter << "/" << icp_it_th << " : " << std::fixed << dist_mean << " " << d_diff << " " << px_inliers_ratio << " " << pts_model.size() << std::endl;
   }
@@ -622,7 +622,7 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
       continue;
 
     //-- find the corresponding point pairs in two point cloud
-    if (1==iter)  //-- ³õÊ¼µ¼ÈëÊ±pts_modelºÍpts_ref¾ÍÒÑ¾­Ê±correspondedÁË¡£
+    if (1==iter)  //-- ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ê±pts_modelï¿½ï¿½pts_refï¿½ï¿½ï¿½Ñ¾ï¿½Ê±correspondedï¿½Ë¡ï¿½
     {
       copyPoints(pts_model, pts_cor_model);
       copyPoints(pts_ref, pts_cor_ref);
@@ -632,7 +632,7 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
   //    PointsCorresponding(pts_ref, pts_model, pts_cor_ref, pts_cor_model, 3*dist_mean);//-- 3*dist_mean
       PointsCorresponding(pts_ref, pts_model, index, pts_cor_ref, pts_cor_model, 3*dist_mean);
     }
-    //-- ¶ÔÓ¦µã¶ÔÌ«ÉÙ£¬¾ÍÖ±½Ó²»×öÁË
+    //-- ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Ì«ï¿½Ù£ï¿½ï¿½ï¿½Ö±ï¿½Ó²ï¿½ï¿½ï¿½ï¿½ï¿½
     if (pts_cor_ref.size() < ptNum_thr || pts_cor_model.size() < ptNum_thr )
     {
       iter = icp_it_thr; 
@@ -668,7 +668,7 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
     //transform the point cloud
     transformPoints(pts_model, pts_model, R_optimal, T_optimal);
     Time[5] = cv::getTickCount();
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
     //-- show
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_model_trsf = getpclPtr(pts_model);
     stringstream ss;
@@ -676,7 +676,7 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
     string  str = ss.str();
 
     show_point_cloud_pcl_with_color(pcl_cloud_model_trsf, str, 255, 255, 0);
-#endif // PCL_DEBUG   
+#endif // NEED_PCL_DEBUG
     Time[6] = cv::getTickCount(); 
     //compute the distance between the transformed and ref point clouds
     dist_diff = dist_mean;
@@ -696,7 +696,7 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
     //update the rotation matrix
     R = R_optimal * R;
     Time[8] = cv::getTickCount();
-    //-- ÏÔÊ¾Ëã·¨Ê±¼ä
+    //-- ï¿½ï¿½Ê¾ï¿½ã·¨Ê±ï¿½ï¿½
     printTimeOfICP(Time, 9);
     //std::cout << " it " << iter << "/" << icp_it_th << " : " << std::fixed << dist_mean << " " << d_diff << " " << px_inliers_ratio << " " << pts_model.size() << std::endl;
   }

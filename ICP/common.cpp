@@ -2,7 +2,7 @@
 #include  <iostream>
 using namespace std;
 #include <opencv2/highgui/highgui.hpp>
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/io/pcd_io.h>
 #endif
@@ -51,7 +51,7 @@ void show_image(const cv::Mat &img, string img_name, bool isWaitKey)
 }
 
 
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
 extern void show_mat_vec3f(const cv::Mat_<cv::Vec3f> &depth_3d, string depth_3d_name, bool isWaitKey)
 {
     if (depth_3d.empty())

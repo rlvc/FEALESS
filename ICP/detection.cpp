@@ -1,7 +1,7 @@
 #include "detection.h"
 #include "depth_to_3d.h"
 #include "opencv2/opencv.hpp"
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
 #include <pcl/io/pcd_io.h>
 #endif
 #include "../ICP/common.h"
@@ -14,7 +14,7 @@ void detection(cv::Mat depImg_model_raw, cv::Mat temp, \
  //------1.  model_raw 和ref_raw两个深度图像的导入与显示  ------//
     cv::Mat depImg_ref_raw;
     temp.convertTo(depImg_ref_raw, CV_16UC1, 10);
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
 	show_image(depImg_model_raw, "model_raw", false);
     show_image(depImg_ref_raw, "ref_raw");
 #endif
@@ -34,7 +34,7 @@ void detection(cv::Mat depImg_model_raw, cv::Mat temp, \
     cv::Mat_<cv::Vec3f> depth_real_model = depth_real_model_raw(rect_model_final);
     cv::Mat_<cv::Vec3f> depth_real_ref = depth_real_ref_raw(rect_ref_final);
     
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
     //------ 3. show the corresponded rects and depths ------//
     //-- show two rects infomation
 
@@ -102,7 +102,7 @@ void detection(cv::Mat depImg_model_raw, cv::Mat temp, \
     matToVec(depth_real_ref, depth_real_model, pts_ref, pts_mod);
 
     //-- 显示
-#ifdef TEST_DETECT
+#ifdef NEED_PCL_DEBUG
     if (pts_mod.empty())
     {
         cout << "pts_mod is Empty" << endl;
@@ -138,7 +138,7 @@ void detection(cv::Mat depImg_model_raw, cv::Mat temp, \
     cv::add(T_final, T, T_final);
     R_final = R * r_match;
 
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
     //-------------- 8. 作用到点云上，得最终结果----------------//
     std::vector<cv::Vec3f> pts_mod_final;
  //   pts_mod_final.resize ( pts_mod.size() );

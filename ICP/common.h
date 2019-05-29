@@ -1,6 +1,6 @@
 #ifndef  COMMON_H
 #define  COMMON_H
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
 #include <pcl/common/common_headers.h>
 #endif
 #include <opencv2/core/core.hpp>
@@ -24,7 +24,7 @@ extern void show_rect_info(const cv::Rect_<int> &rect, string rect_name);
 extern void show_image(const cv::Mat &img, string img_name, bool isWaitKey = true);
 
 
-#ifdef PCL_DEBUG
+#ifdef NEED_PCL_DEBUG
 /**
  * @ brief  Show the regular point cloud ()
  * @param  depth_3d[in]       the regular point cloud 
