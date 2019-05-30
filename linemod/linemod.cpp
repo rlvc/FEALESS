@@ -1219,7 +1219,7 @@ Detector::Detector(const std::vector< Ptr<Modality> >& _modalities,
 {
 }
 
-void Detector::match(const std::vector<Mat>& sources, float threshold, std::vector<Match>& matches,
+int Detector::match(const std::vector<Mat>& sources, float threshold, std::vector<Match>& matches,
                      const std::vector<String>& class_ids, OutputArrayOfArrays quantized_images,
                      const std::vector<Mat>& masks) const
 {
@@ -1227,17 +1227,22 @@ void Detector::match(const std::vector<Mat>& sources, float threshold, std::vect
   if (quantized_images.needed())
     quantized_images.create(1, static_cast<int>(pyramid_levels * modalities.size()), CV_8U);
 
-  CV_Assert(sources.size() == modalities.size());
+  if (sources.size() != modalities.size()) { 
+      LOGD("linemod sources size = %d with wrong feature size = %d\n", sources.size(), modalities.size());
+      return -1;
+  }
   // Initialize each modality with our sources
   std::vector< Ptr<QuantizedPyramid> > quantizers;
   for (int i = 0; i < (int)modalities.size(); ++i){
     Mat mask, source;
     source = sources[i];
     if(!masks.empty()){
-      CV_Assert(masks.size() == modalities.size());
+      if(masks.size() != modalities.size()) {
+          LOGD("linemod masks size = %d with wrong feature size = %d\n", masks.size(), modalities.size());
+          return -1;
+      }
       mask = masks[i];
     }
-    CV_Assert(mask.empty() || mask.size() == source.size());
     quantizers.push_back(modalities[i]->process(source, mask));
   }
   // pyramid level -> modality -> quantization
@@ -1298,6 +1303,7 @@ void Detector::match(const std::vector<Mat>& sources, float threshold, std::vect
   std::sort(matches.begin(), matches.end());
   std::vector<Match>::iterator new_end = std::unique(matches.begin(), matches.end());
   matches.erase(new_end, matches.end());
+  return 0;
 }
 
 // Used to filter out weak matches

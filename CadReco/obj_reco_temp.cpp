@@ -2,13 +2,13 @@
 #include "obj_reco_lmicp.h"
 ////#include "log_def.h"
 //#include <iosfwd>
-//#define LIB_VERSION "3.1.1"
-//string CObjRecoCAD::GetVersion()
-//{
-//    std::stringstream s;
-//    s << "Lenovo 3D Object Recognition. Version " << LIB_VERSION " Compile Time: " __DATE__ " " << __TIME__;
-//    return s.str();
-//}
+#define LIB_VERSION "3.1.1"
+string CObjRecoCAD::GetVersion()
+{
+    std::stringstream s;
+    s << "Lenovo CAD-based 3D Object Recognition. Version " << LIB_VERSION " Compile Time: " __DATE__ " " << __TIME__;
+    return s.str();
+}
 
 CObjRecoCAD * CObjRecoCAD::Create(EObjRecoType eType)
 {

@@ -9,6 +9,8 @@ using namespace cv;
 
 void linemod_recon(const string &strConfigFile)
 {
+    string strVersion = CObjRecoCAD::GetVersion();
+    cout << strVersion << endl;
 #ifdef TEST_DETECT
     VideoWriter videowriter_depth;
     videowriter_depth.open("./depth.avi",CV_FOURCC('D','I','V','X'),5.0, Size(640, 480));

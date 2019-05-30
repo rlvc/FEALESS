@@ -1,7 +1,7 @@
 #ifndef __LINEMOD_HPP_M__
 #define __LINEMOD_HPP_M__
 
-#include "opencv2/opencv.hpp"
+#include "opencv2/core.hpp"
 #include <map>
 using namespace cv;
 /****************************************************************************************\
@@ -321,7 +321,7 @@ public:
    *                       the same size as sources.  Each element must be
    *                       empty or the same size as its corresponding source.
    */
-  void match(const std::vector<Mat>& sources, float threshold, std::vector<Match>& matches,
+  int match(const std::vector<Mat>& sources, float threshold, std::vector<Match>& matches,
              const std::vector<String>& class_ids = std::vector<String>(),
              OutputArrayOfArrays quantized_images = noArray(),
              const std::vector<Mat>& masks = std::vector<Mat>()) const;
