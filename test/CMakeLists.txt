@@ -2,8 +2,7 @@ file(GLOB_RECURSE DIR_TEST_HEADER "*.h")
 file(GLOB_RECURSE DIR_TEST_SOURCE "*.cpp")
 source_group("Header" FILES ${DIR_TEST_HEADER})
 source_group("Source" FILES ${DIR_TEST_SOURCE})
-#strongly recommend to use the Eigen in the repo cup.third.party
-set(EIGEN3 ${PROJECT_SOURCE_DIR}/../cup/cup.third.party/Eigen)
+
 include_directories(./ ${OpenCV_INCLUDE_DIRS} ${LINEMOD} "${KCF}" ${CAD_RECO} ${ICP_DIR} ${EIGEN3})
 find_package(realsense2 REQUIRED)
 add_executable(FEALESS ${DIR_TEST_HEADER} ${DIR_TEST_SOURCE})

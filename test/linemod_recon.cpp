@@ -75,6 +75,9 @@ void linemod_recon(const string &strConfigFile)
 
         ptReco->Recognition(tRGB, tDepth, t_cam_param, vtResult);
         if(vtResult.size() == 0){
+            Mat display_f = aligned_color_image.clone();
+            cv::imshow("failed", display_f);
+            waitKey(1000);
             continue;
         }
         Mat display = aligned_color_image.clone();

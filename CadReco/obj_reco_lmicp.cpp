@@ -4,6 +4,11 @@
 #include "detection.h"
 
 #define PROC_IMG_WIDTH 640
+#define RENDERING_MODEL_SCALE   0.1f
+#define EFFECTIVE_DEPTH 10.0f
+//#define EPNP_LM
+
+using namespace Eigen;
 
 std::string ato_string( const int n )
 {
@@ -61,7 +66,7 @@ CObjRecoLmICP::CObjRecoLmICP()
     m_nWidth = m_nHeight = 0;
     m_vdDistCoeff.clear();
     m_tCamMat = Mat::eye(3, 3, CV_64F);
-    m_matching_threshold = 80.0f;
+    m_matching_threshold = 75.0f;
     m_icp_it_thr = 10;
     m_dist_mean_thr = 0.0f;
     m_dist_diff_thr = 0.001f;
@@ -120,7 +125,7 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     cur_result.strObjTag = cur_match.class_id;
     const std::vector<cup_linemod::Template>& current_template = m_lm_detector->getTemplates(cur_match.class_id, cur_match.template_id);
 
-#ifdef TEST_DETECT
+#ifdef LINEMOD_DEBUG
     string current_rgb_template_path = m_str_lm_feature_path + string("/gray/") + ato_string(cur_match.template_id) + string(".png");
     Mat current_rgb_template = imread(current_rgb_template_path);
     Mat display = m_rgb.clone();
@@ -134,7 +139,7 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     cv::Rect_<int> rect_ref_raw(rect_model_raw);
     rect_ref_raw.x += match_x;
     rect_ref_raw.y += match_y;
-#ifdef TEST_DETECT
+#ifdef NEED_PCL_DEBUG
     string current_rgb_template_path1 = m_str_lm_feature_path + string("/gray/") + to_string(cur_match.template_id) + string(".png");
     Mat current_rgb_template1 = imread(current_rgb_template_path1);
     Mat display1 = m_rgb.clone();
@@ -151,35 +156,32 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     for (int i1 = 0; i1 < 3; i1++, pfRow += 4)
     {
         for (int j1 = 0; j1 < 3; j1++) r_match(i1, j1) = pfRow[j1];
-        t_match(i1) = pfRow[3] / 100;
+        t_match(i1) = pfRow[3];
     }
-    float d_match = poseCorrdInfo[12] / 1000;
-//    float model_center_val = (float)(im.at<uint16_t>(im.rows/2, im.cols/2))/10000;
-//    d_match -= model_center_val;
-//
-//
-//    Eigen::Matrix3f view_axis;// = cv::Matx33f::eye();
-//    cv::Matx33f r_match = cv::Matx33f::eye();
-//    cv::Vec3f t_match = cv::Vec3f(3, 0, 0);
-//    float d_match = viewCorrdInfo[12]/1000;
-//    for (int ii = 0; ii < 3; ++ii) {
-//        for (int jj = 0; jj < 3; ++jj) {
-//            view_axis(ii,jj) = viewCorrdInfo[jj * 3 + ii];
-//        }
-//    }
-//    Eigen::Matrix3f view_axis1 = view_axis.inverse();
-//    for (int ii = 0; ii < 3; ++ii) {
-//        for (int jj = 0; jj < 3; ++jj) {
-//            r_match(ii,jj) = view_axis1(ii,jj);
-//        }
-//        t_match[ii] = d_match * viewCorrdInfo[9 + ii];
-//    }
+    float d_match = poseCorrdInfo[12];
+
     std::string  filename_depth_model = m_str_lm_feature_path + string("/depth/") + ato_string(cur_match.template_id) + string(".png");
     Mat depImg_model_raw = imread(filename_depth_model, -1);
-    float model_center_val = (float)(depImg_model_raw.at<uint16_t>(depImg_model_raw.rows/2, depImg_model_raw.cols/2))/10000;
+    float model_center_val = (float)(depImg_model_raw.at<uint16_t>(depImg_model_raw.rows/2, depImg_model_raw.cols/2))/RENDERING_MODEL_SCALE;
     d_match -= model_center_val;
+#ifdef EPNP_LM
+    Mat pose_ini = Mat::zeros(4, 4, CV_32F);
+    for (int i1 = 0; i1 < 3; i1++, pfRow += 4)
+    {
+        for (int j1 = 0; j1 < 3; j1++)
+        {
 
+            pose_ini.at<float>(i1, j1) = r_match(i1, j1);
+        }
 
+        pose_ini.at<float>(i1, 3) = t_match(i1);
+
+    }
+    pose_ini.at<float>(3, 3) = 1.0f;
+    Mat pose_final = Mat::zeros(4, 4, CV_32F); 
+    pose_final = ComputePose(depImg_model_raw, match_x, match_y, pose_ini);
+    memcpy(&cur_result.tWorld2Cam[0], pose_final.data, sizeof(float) * 16);
+#else
     cv::Vec3f T_final;
     cv::Matx33f R_final;
     detection(depImg_model_raw, m_depth, rect_model_raw, rect_ref_raw, \
@@ -189,6 +191,7 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     cv::Mat R_mat = Mat(R_final);
     cv::Mat T_mat = Mat(T_final);
     Convert(R_mat, T_mat, cur_result.tWorld2Cam);
+#endif
     vtResult.push_back(cur_result);
     return 0;
 }
@@ -237,10 +240,7 @@ int CObjRecoLmICP::PrepareInputData(const TImageU &tRGB, const TImageU16& tDepth
 
     m_rgb = TImage2Mat(tRGB, w, h, CV_8UC3, true);
     m_depth = TImage2Mat(tDepth, w, h, CV_16UC1, true);
-#ifdef TEST_DETECT
-//    m_rgb = imread("/home/rlvc/Workspace/0_code/FEALESS/data/test/gray_0030.png");
-//    m_depth = imread("/home/rlvc/Workspace/0_code/FEALESS/data/test/depth_0030.png", -1);
-
+#ifdef LINEMOD_DEBUG
     imshow("m_rgb", m_rgb);
     imshow("m_depth", m_depth);
     waitKey(100);
@@ -261,4 +261,79 @@ int CObjRecoLmICP::SetCamIntrinsic(const TCamIntrinsicParam & tParam)
 
     m_tCamParam = tParam;
     return 0;
+}
+
+cv::Mat CObjRecoLmICP::ComputePose(Mat depImg_model_raw, const int match_x, const int match_y, cv::Mat &Pose4x4)
+{
+    Matrix3f K = Matrix3f::Identity();
+    K(0, 0) = m_tCamMat.at<double>(0, 0);
+    K(1, 1) = m_tCamMat.at<double>(1, 1);
+    K(0, 2) = m_tCamMat.at<double>(0, 2);
+    K(1, 2) = m_tCamMat.at<double>(1, 2);
+    Matrix3f m_InvK = K.inverse();
+    int w = m_nWidth;
+    int h = m_nHeight;
+    
+    Mat depth_32f_image;
+    depImg_model_raw.convertTo(depth_32f_image, CV_32F);
+    float *pfDepth = (float *)depth_32f_image.data;
+
+    Matrix3f R;
+    Vector3f t;
+    float *pfRow = (float *)Pose4x4.data;
+    for (int i1 = 0; i1 < 3; i1++, pfRow += 4)
+    {
+        for (int j1 = 0; j1 < 3; j1++) R(i1, j1) = pfRow[j1];
+        t(i1) = pfRow[3];
+    }
+
+    vector<Point3f> obj_points = vector<Point3f>();
+    vector<Point2f> img_points = vector<Point2f>();
+    for (int i = 0; i < depImg_model_raw.rows; i++)
+    {
+        for (int j = 0; j < depImg_model_raw.cols; j++)
+        {
+            if (depImg_model_raw.at<uint16_t>(i, j) < depImg_model_raw.at<uint16_t>(0, 0))
+            {
+                img_points.push_back(cv::Point2f(j + match_x, i + match_y));
+                int nDepthIdx = (int)(i + 0.5f) * w + (int)(j + 0.5f);
+                float z = pfDepth[nDepthIdx] * RENDERING_MODEL_SCALE;
+                if (z < EFFECTIVE_DEPTH)
+                {
+                    img_points.pop_back();
+                    continue;
+                }
+                Vector3f pi;
+                pi(0) = j;
+                pi(1) = i;
+                pi(2) = 1;
+                Vector3f Xc = z * m_InvK * pi;
+                Vector3f Xw = R.transpose() * (Xc - t);
+                obj_points.push_back(Point3f(Xw.x(), Xw.y(), Xw.z()));
+            }
+        }
+    }
+
+    cv::Mat r_final = Mat::zeros(3, 1, CV_64F);
+    cv::Mat t_final = Mat::zeros(3, 1, CV_64F);
+
+    double pose[6] = { 0 };
+    //use pnp to estimate an initial pose   
+    bool status = solvePnP(obj_points, img_points, m_tCamMat, cv::noArray(), r_final, t_final, false, cv::SOLVEPNP_EPNP);
+
+    Mat R_final;
+    Rodrigues(r_final, R_final);
+    
+    Mat pose_final = cv::Mat::eye(4, 4, CV_32F);
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            pose_final.at<float>(i, j) = (float)R_final.at<double>(i, j);
+        }
+        pose_final.at<float>(i, 3) = (float)t_final.at<double>(i);
+    }
+    pose_final.at<float>(3, 0) = pose_final.at<float>(3, 1) = pose_final.at<float>(3, 2) = 0;
+    pose_final.at<float>(3, 3) = 1;
+    return pose_final;
 }

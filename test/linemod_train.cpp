@@ -171,8 +171,6 @@ static bool LoadView(string strFile, float *pfBuf)
     getline(ifPose, line);
     getline(ifPose, line);
     getline(ifPose, line);
-    getline(ifPose, line);
-    getline(ifPose, line);
     stringstream strstream(line);
     strstream >> pfBuf[0];
     ifPose.close();

@@ -7,11 +7,6 @@ typedef void(*CupFunction)(const string&);
 void linemod_train(const string &strConfigFile);
 void linemod_recon(const string &strConfigFile);
 void linemod_acq(const string &strConfigFile);
-//void img_train(const string &strConfigFile);
-//void img_recon(const string &strConfigFile);
-//void qrc_recon(const string &strConfigFile);
-//void obj_recon_visualize(const string &strConfigFile);
-//void calibration(const string &cam_id);
 
 static CupFunction GetCupFunction(string& strFuncName);
 static void Help();
