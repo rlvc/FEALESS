@@ -67,7 +67,7 @@ int CObjRecoLmICP::Train(const string &strDataBase, const TScanPackage &tScanPac
 int CObjRecoLmICP::AddObj(const string str_feature_path)
 {
     m_str_lm_feature_path = str_feature_path;
-    m_lm_detector = readLinemod(m_str_lm_feature_path + string("/linemod_templates.yml"));
+    m_lm_detector = readLinemod(m_str_lm_feature_path + string("/linemod_templates_d.yml"));
     if(0 == m_lm_detector->numClasses())
         return ERROR_OPEN_FILE_FAILED;
     return 0;
@@ -98,7 +98,10 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     std::vector<String> class_ids;
     std::vector<cv::Mat> quantized_images;
 //    match_timer.start();
-    m_lm_detector->match(sources, m_matching_threshold, matches, class_ids, quantized_images);
+    if (0 != m_lm_detector->match(sources, m_matching_threshold, matches, class_ids, quantized_images))
+    {
+        return ERROR_INVALID_PARAM;
+    }
     if(matches.size() == 0)
     {
         return 0;
