@@ -2,7 +2,7 @@
 #include  <iostream>
 using namespace std;
 #include <opencv2/highgui/highgui.hpp>
-#ifdef TEST_DETECT
+#ifdef NEED_PCL_DEBUG
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/io/pcd_io.h>
 #endif
@@ -51,7 +51,7 @@ void show_image(const cv::Mat &img, string img_name, bool isWaitKey)
 }
 
 
-#ifdef TEST_DETECT
+#ifdef NEED_PCL_DEBUG
 extern void show_mat_vec3f(const cv::Mat_<cv::Vec3f> &depth_3d, string depth_3d_name, bool isWaitKey)
 {
     if (depth_3d.empty())
@@ -226,6 +226,36 @@ float matToVec(const cv::Mat_<cv::Vec3f> &src, std::vector<cv::Vec3f>& pts)
     }
 
     float ratio = static_cast<float>(px_missing) / static_cast<float>(src.total());
+    return ratio;
+}
+
+float vecToMat(const std::vector<cv::Vec3f>& src, cv::Mat_<cv::Vec3f> &dst)
+{
+    if (src.empty())
+    {
+        cout << "vecToMat: vec is Empty" << endl;
+        return -1;
+    }
+
+    std::vector<cv::Vec3f> pts_valid;
+    int px_missing = 0;
+
+    size_t  size = src.size();
+    for (int i=0; i<size; i++)
+    {
+        if (! is_vec3f_valid(src[i]) )
+        {
+            ++px_missing;
+            continue;
+        }
+        
+        pts_valid.push_back(src[i]);      
+    }
+
+    dst = cv::Mat(pts_valid);
+    pts_valid.clear();
+    
+    float ratio = static_cast<float>(px_missing) / static_cast<float>(pts_valid.size());
     return ratio;
 }
 

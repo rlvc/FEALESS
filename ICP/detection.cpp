@@ -1,29 +1,22 @@
 #include "detection.h"
 #include "depth_to_3d.h"
-#include "opencv2/opencv.hpp"
-#ifdef TEST_DETECT
+#ifdef NEED_PCL_DEBUG
 #include <pcl/io/pcd_io.h>
 #endif
 #include "../ICP/common.h"
-//#include "../ICP/data_preprocess.h"
 #include "../ICP/ICP.h"
 
-void detection(const string &filename_depth_model, const string &filename_depth_ref, \
-    const cv::Rect_<int> rect_model_final, cv::Rect_<int> rect_ref_final, int  icp_it_thr, float dist_mean_thr, float dist_diff_thr, \
+void detection(cv::Mat depImg_model_raw, cv::Mat temp, \
+               const cv::Rect_<int> rect_model_final, cv::Rect_<int> rect_ref_final, int  icp_it_thr, float dist_mean_thr, float dist_diff_thr, \
                cv::Matx33f r_match, cv::Vec3f t_match, float d_match, cv::Vec3f &T_final, cv::Matx33f &R_final)
 {
  //------1.  model_raw 和ref_raw两个深度图像的导入与显示  ------//
-    const char *  filename_model = filename_depth_model.data();
-    cv::Mat depImg_model_raw = cv::imread(filename_model, -1) ;//-- -1按保存的类型（CV_16UC1）进行打开
-    show_image(depImg_model_raw, "model_raw", false);
-  
-
-    const char *  filename_ref = filename_depth_ref.data();
-    cv::Mat temp = cv::imread(filename_ref, -1);
-    cv::Mat  depImg_ref_raw;
+    cv::Mat depImg_ref_raw;
     temp.convertTo(depImg_ref_raw, CV_16UC1, 10);
+#ifdef NEED_PCL_DEBUG
+	show_image(depImg_model_raw, "model_raw", false);
     show_image(depImg_ref_raw, "ref_raw");
-   
+#endif
   
     //-- 转化为cv::Mat<cv::vec3f>
     cv::Mat_<cv::Vec3f> depth_real_model_raw, depth_real_ref_raw;
@@ -40,7 +33,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     cv::Mat_<cv::Vec3f> depth_real_model = depth_real_model_raw(rect_model_final);
     cv::Mat_<cv::Vec3f> depth_real_ref = depth_real_ref_raw(rect_ref_final);
     
-#ifdef TEST_DETECT
+#ifdef NEED_PCL_DEBUG
     //------ 3. show the corresponded rects and depths ------//
     //-- show two rects infomation
 
@@ -108,7 +101,7 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     matToVec(depth_real_ref, depth_real_model, pts_ref, pts_mod);
 
     //-- 显示
-#ifdef TEST_DETECT
+#ifdef NEED_PCL_DEBUG
     if (pts_mod.empty())
     {
         cout << "pts_mod is Empty" << endl;
@@ -134,43 +127,17 @@ void detection(const string &filename_depth_model, const string &filename_depth_
     }
 #endif
     //-------------- 6. 测试ICP算法(模板与对象) ----------------//
-#if 0
+
     cv::Matx33f R;
     cv::Vec3f T;
     float px_inliers_ratio;
-  
-    cv::Vec3f T_model_viewport = depth_real_ref(depth_real_ref.rows / 2.0f, depth_real_ref.cols / 2.0f);
-    T_model_viewport(2) += d_match;
-
-    cv::Matx33f R_model_viewport(r_match);
-    std::vector<cv::Vec3f> pts_mod1;
-    transformPoints(pts_mod, pts_mod1, R_model_viewport, T_model_viewport);
-
-
-    float dist_mean = icpCloudToCloud(pts_ref, pts_mod1, R, T, px_inliers_ratio, \
-                          icp_it_thr, dist_mean_thr, dist_diff_thr);
-
-    //-------------- 7. 引入模板与视角的关系，最终得到对象在相机坐标系下的位姿----------------//
-    
-
-    if (!cv::checkRange(T_model_viewport))
-        return;
-    if (!cv::checkRange(R_model_viewport))
-        return;
-    T_final = R * T_model_viewport;
-    cv::add(T_final, T, T_final);
-    R_final = R * R_model_viewport;
-#else
-    cv::Matx33f R;
-    cv::Vec3f T;
-    float px_inliers_ratio;
-    float dist_mean = icpCloudToCloud(pts_ref, pts_mod, R, T, px_inliers_ratio, \
+    float dist_mean = icpCloudToCloud_Ex(pts_ref, pts_mod, R, T, px_inliers_ratio, \
         icp_it_thr, dist_mean_thr, dist_diff_thr);
     T_final = R * t_match;
     cv::add(T_final, T, T_final);
     R_final = R * r_match;
-#endif
-#ifdef TEST_DETECT
+
+#ifdef NEED_PCL_DEBUG
     //-------------- 8. 作用到点云上，得最终结果----------------//
     std::vector<cv::Vec3f> pts_mod_final;
  //   pts_mod_final.resize ( pts_mod.size() );

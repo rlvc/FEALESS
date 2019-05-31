@@ -1,8 +1,8 @@
 //#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <string>
-#include "linemod_if.h"
 #include "opencv2/opencv.hpp"
+#include "linemod_if.h"
 #include "lotus_common.h"
 #include "my_timer.h"
 using namespace std;
@@ -26,13 +26,14 @@ struct TLinemodPackage
 bool LoadScanPackage(TLinemodPackage &tScanPackage, const char *pDir);
 void Convert(const char *pDir);
 static bool LoadArray(string strFile, float *pfBuf, int nLen);
+static bool LoadView(string strFile, float *pfBuf);
 void linemod_train(const string &strConfigFile)
 {
     Timer extract_timer;
     cv::Ptr<cup_linemod::Detector> detector = cup_linemod::getDefaultLINEMOD();
     //cv::Ptr<cup_linemod::Detector> detector = cup_linemod::getDefaultLINE();
-    string filename = strConfigFile + "/linemod_templates_mask.yml";
-    string class_id = string("qiufa");
+    string filename = strConfigFile + "/linemod_templates.yml";
+    string class_id = string("c919-jjg2-assy-2");
     extract_timer.start();
     Convert(strConfigFile.c_str());
     int nFrame = 0;
@@ -48,6 +49,13 @@ void linemod_train(const string &strConfigFile)
         if (depth.empty()) break;
         Mat fDepth;
         depth.convertTo(fDepth, CV_16U, 0.1);
+        string strPose = strConfigFile + string("/pose/") + string(name) + string(".txt");
+        Mat4x4F tWorld2Cam;
+        if (!LoadArray(strPose, tWorld2Cam, 3 * 4)) break;
+        string strView = strConfigFile + string("/view/") + string(name) + string(".txt");
+        float fDistance;
+        if (!LoadView(strView, &tWorld2Cam[12])) break;
+
         Mat Mask = Mat::zeros(fDepth.size(), CV_8U);
         for (size_t i = 0; i < fDepth.cols; i++)
         {
@@ -61,7 +69,7 @@ void linemod_train(const string &strConfigFile)
         vector<Mat> cur_source = vector<Mat>();
         cur_source.push_back(gray);
         cur_source.push_back(fDepth);
-        int template_id = detector->addTemplate(cur_source, class_id, Mask);
+        int template_id = detector->addTemplate(cur_source, class_id, Mask, tWorld2Cam);
         //int template_id = detector->addTemplate(cur_source, class_id, Mat());
 
         if (template_id != -1)
@@ -79,7 +87,7 @@ void linemod_train(const string &strConfigFile)
     extract_timer.stop();
     printf("Training: %.2fs, average %.2fs\n", extract_timer.time(), extract_timer.time() / nFrame);
     writeLinemod(detector, filename);
-    system("pause");
+//    system("pause");
 }
 
 void Convert(const char *pDir)
@@ -147,6 +155,24 @@ static bool LoadArray(string strFile, float *pfBuf, int nLen)
     getline(ifPose, line);
     stringstream strstream(line);
     for (int i = 0; i < nLen; i++) strstream >> pfBuf[i];
+    ifPose.close();
+    return true;
+}
+
+static bool LoadView(string strFile, float *pfBuf)
+{
+    ifstream ifPose(strFile.c_str());
+    if (!ifPose.is_open())
+    {
+        cout << "read file failed! [file] " << strFile << endl;
+        return false;
+    }
+    string line;
+    getline(ifPose, line);
+    getline(ifPose, line);
+    getline(ifPose, line);
+    stringstream strstream(line);
+    strstream >> pfBuf[0];
     ifPose.close();
     return true;
 }

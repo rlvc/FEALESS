@@ -1092,7 +1092,6 @@ static void similarity(const std::vector<Mat>& linear_memories, const Template& 
   dst = Mat::zeros(H, W, CV_8U);
   uchar* dst_ptr = dst.ptr<uchar>();
 
-
   // Compute the similarity measure for this template by accumulating the contribution of
   // each feature
   for (int i = 0; i < (int)templ.features.size(); ++i)
@@ -1109,7 +1108,6 @@ static void similarity(const std::vector<Mat>& linear_memories, const Template& 
     // Now we do an aligned/unaligned add of dst_ptr and lm_ptr with template_positions elements
     int j = 0;
     // Process responses 16 at a time if vectorization possible
-
     for ( ; j < template_positions; ++j)
       dst_ptr[j] = uchar(dst_ptr[j] + lm_ptr[j]);
   }
@@ -1221,7 +1219,7 @@ Detector::Detector(const std::vector< Ptr<Modality> >& _modalities,
 {
 }
 
-void Detector::match(const std::vector<Mat>& sources, float threshold, std::vector<Match>& matches,
+int Detector::match(const std::vector<Mat>& sources, float threshold, std::vector<Match>& matches,
                      const std::vector<String>& class_ids, OutputArrayOfArrays quantized_images,
                      const std::vector<Mat>& masks) const
 {
@@ -1229,17 +1227,22 @@ void Detector::match(const std::vector<Mat>& sources, float threshold, std::vect
   if (quantized_images.needed())
     quantized_images.create(1, static_cast<int>(pyramid_levels * modalities.size()), CV_8U);
 
-  CV_Assert(sources.size() == modalities.size());
+  if (sources.size() != modalities.size()) { 
+      LOGD("linemod sources size = %d with wrong feature size = %d\n", sources.size(), modalities.size());
+      return -1;
+  }
   // Initialize each modality with our sources
   std::vector< Ptr<QuantizedPyramid> > quantizers;
   for (int i = 0; i < (int)modalities.size(); ++i){
     Mat mask, source;
     source = sources[i];
     if(!masks.empty()){
-      CV_Assert(masks.size() == modalities.size());
+      if(masks.size() != modalities.size()) {
+          LOGD("linemod masks size = %d with wrong feature size = %d\n", masks.size(), modalities.size());
+          return -1;
+      }
       mask = masks[i];
     }
-    CV_Assert(mask.empty() || mask.size() == source.size());
     quantizers.push_back(modalities[i]->process(source, mask));
   }
   // pyramid level -> modality -> quantization
@@ -1300,6 +1303,7 @@ void Detector::match(const std::vector<Mat>& sources, float threshold, std::vect
   std::sort(matches.begin(), matches.end());
   std::vector<Match>::iterator new_end = std::unique(matches.begin(), matches.end());
   matches.erase(new_end, matches.end());
+  return 0;
 }
 
 // Used to filter out weak matches
@@ -1439,11 +1443,13 @@ void Detector::matchClass(const LinearMemoryPyramid& lm_pyramid,
 }
 
 int Detector::addTemplate(const std::vector<Mat>& sources, const String& class_id,
-                          const Mat& object_mask, Rect* bounding_box)
+                          const Mat& object_mask, const float* const pose_info, Rect* bounding_box)
 {
   int num_modalities = static_cast<int>(modalities.size());
   std::vector<TemplatePyramid>& template_pyramids = class_templates[class_id];
   int template_id = static_cast<int>(template_pyramids.size());
+
+  addPoseInfo(pose_info);
 
   TemplatePyramid tp;
   tp.resize(num_modalities * pyramid_levels);
@@ -1472,6 +1478,25 @@ int Detector::addTemplate(const std::vector<Mat>& sources, const String& class_i
   /// @todo Can probably avoid a copy of tp here with swap
   template_pyramids.push_back(tp);
   return template_id;
+}
+
+int Detector::addPoseInfo(const float* const pose_info)
+{
+    std::vector<float> v_pose_info(pose_info, pose_info + 13);
+    TemplatePoseInfo.push_back(v_pose_info);
+    return (int)TemplatePoseInfo.size();
+}
+
+std::vector<float> Detector::getPoseInfo(int template_id)
+{
+    std::vector<float> v_pose_info = TemplatePoseInfo[template_id];
+//    v_pose_info.erase(v_pose_info.begin()+3);
+//    v_pose_info.erase(v_pose_info.begin()+7 - 1);
+//    v_pose_info.erase(v_pose_info.begin()+11 - 2);
+//    v_pose_info.insert(v_pose_info.begin() + 9, -v_pose_info[6]);
+//    v_pose_info.insert(v_pose_info.begin() + 10, -v_pose_info[7]);
+//    v_pose_info.insert(v_pose_info.begin() + 11, -v_pose_info[8]);
+    return v_pose_info;
 }
 
 int Detector::addSyntheticTemplate(const std::vector<Template>& templates, const String& class_id)
@@ -1584,6 +1609,9 @@ void Detector::write(FileStorage& fs) const
   {
     int template_id = (*tps_it)["template_id"];
     CV_Assert(template_id == expected_id);
+    std::vector<float> ff_fn = std::vector<float>();//(*tps_it)["template_pose"];
+    (*tps_it)["template_pose"] >> ff_fn;
+    TemplatePoseInfo.push_back(ff_fn);
     FileNode templates_fn = (*tps_it)["templates"];
     tps[template_id].resize(templates_fn.size());
 
@@ -1617,6 +1645,7 @@ void Detector::writeClass(const String& class_id, FileStorage& fs) const
     const TemplatePyramid& tp = tps[i];
     fs << "{";
     fs << "template_id" << int(i); //TODO is this cast correct? won't be good if rolls over...
+    fs << "template_pose" << TemplatePoseInfo[i];
     fs << "templates" << "[";
     for (size_t j = 0; j < tp.size(); ++j)
     {

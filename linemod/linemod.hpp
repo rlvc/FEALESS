@@ -7,8 +7,20 @@ using namespace cv;
 /****************************************************************************************\
 *                                 LINE-MOD                                               *
 \****************************************************************************************/
-
-
+//#define ANDOIRD_LOG
+#ifdef ANDOIRD_LOG
+#include "android/log.h"
+#define LOG_TAG "LMICP"
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#else
+#include <stdio.h>
+#ifdef WIN32
+#define LOGD(format, ...) fprintf(stdout, "[INFO] "format, __VA_ARGS__);
+#else//gcc define
+#define LOGD(format, args...) {fprintf(stdout, "[INFO] ");fprintf(stdout, format, ##args);}
+#endif
+#endif
+#define SPOINT_SIZE 128
 namespace cup_linemod {
 
 //! @addtogroup rgbd
@@ -309,7 +321,7 @@ public:
    *                       the same size as sources.  Each element must be
    *                       empty or the same size as its corresponding source.
    */
-  void match(const std::vector<Mat>& sources, float threshold, std::vector<Match>& matches,
+  int match(const std::vector<Mat>& sources, float threshold, std::vector<Match>& matches,
              const std::vector<String>& class_ids = std::vector<String>(),
              OutputArrayOfArrays quantized_images = noArray(),
              const std::vector<Mat>& masks = std::vector<Mat>()) const;
@@ -325,7 +337,11 @@ public:
    * \return Template ID, or -1 if failed to extract a valid template.
    */
   int addTemplate(const std::vector<Mat>& sources, const String& class_id,
-          const Mat& object_mask, Rect* bounding_box = NULL);
+          const Mat& object_mask, const float* const pose_info, Rect* bounding_box = NULL);
+
+  int addPoseInfo(const float* const pose_info);
+
+  std::vector<float> getPoseInfo(int template_id);
 
   /**
    * \brief Add a new object template computed by external means.
@@ -382,6 +398,7 @@ protected:
   typedef std::vector<Template> TemplatePyramid;
   typedef std::map<String, std::vector<TemplatePyramid> > TemplatesMap;
   TemplatesMap class_templates;
+  std::vector<std::vector<float>> TemplatePoseInfo;
 
   typedef std::vector<Mat> LinearMemories;
   // Indexed as [pyramid level][modality][quantized label]

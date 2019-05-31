@@ -1,7 +1,7 @@
 #include "model_mesh.h"
 //#include "log_def.h"
 
-void CModelMesh::Load(string strModelFile)
+void CModelMesh::Load(string strModelFile, int model_scale)
 {
 	FILE *pf = fopen(strModelFile.c_str(), "rb");
 	if (pf == NULL)
@@ -32,7 +32,8 @@ void CModelMesh::Load(string strModelFile)
 				break;
 			default:
 				sscanf(buf, "v %f %f %f", &x, &y, &z);
-				vtVertex.push_back(Point3f(x/100, y/100, z/100));
+				//vtVertex.push_back(Point3f(x/1000, y/1000, z/1000));
+				vtVertex.push_back(Point3f(x/ model_scale, y/ model_scale, z/ model_scale));
 				break;
 			}
 			break;
@@ -60,8 +61,8 @@ void CModelMesh::SetCamIntrinsic(TCamIntrinsicParam tCamIntrinsic)
 
 void CModelMesh::Mesh(Mat &img, Mat R, Mat t, Scalar color)
 {
-	//Mat c = R.t() * t;
-	//Point3f vp(c.at<double>(0), c.at<double>(1), c.at<double>(2));
+	Mat c = R.t() * t;
+	Point3f vp(c.at<double>(0), c.at<double>(1), c.at<double>(2));
 
 	Mat r;
 	Rodrigues(R, r);
@@ -88,4 +89,38 @@ void CModelMesh::Mesh(Mat &img, Mat R, Mat t, Scalar color)
 		line(img, vtImgPt[nVId0], vtImgPt[nVId2], color);
 		line(img, vtImgPt[nVId2], vtImgPt[nVId1], color);
 	}
+}
+
+    void CModelMesh::Mesh(Mat &img, Mat P, Scalar color)
+{
+    Mat R = P.rowRange(0, 3).colRange(0, 3);
+    Mat t = P.rowRange(0, 3).col(3);
+    Mat c = R.t() * t;
+    Point3f vp(c.at<double>(0), c.at<double>(1), c.at<double>(2));
+
+    Mat r;
+    Rodrigues(R, r);
+
+    vector<Point2f> vtImgPt;
+    projectPoints(vtVertex, r, t, m_tCamK, m_vdDistCoeff, vtImgPt);
+
+    vector<bool> vbVisable(vtVertex.size(), false);
+    for (int i = 0; i<vtVertex.size(); i++)
+    {
+        Point3f v = vtVertex[i];
+        //Point3f n = vtNorm[i];
+        //Point3f d = vp - v;
+        //if (d.dot(n) > 0) vbVisable[i] = true;
+    }
+
+    for (int i = 0; i < vtFace.size(); i++)
+    {
+        int nVId0 = vtFace[i].nvID[0];
+        int nVId1 = vtFace[i].nvID[1];
+        int nVId2 = vtFace[i].nvID[2];
+        //if (!vbVisable[nVId0] || !vbVisable[nVId1] || !vbVisable[nVId2]) continue;
+        line(img, vtImgPt[nVId0], vtImgPt[nVId1], color);
+        line(img, vtImgPt[nVId0], vtImgPt[nVId2], color);
+        line(img, vtImgPt[nVId2], vtImgPt[nVId1], color);
+    }
 }
