@@ -1,16 +1,7 @@
 #ifndef __OBJ_RECO_TEMP__
 #define __OBJ_RECO_TEMP__
-//#include <opencv2/core.hpp>
-//#include <opencv2/imgproc/imgproc_c.h> // cvFindContours
-//#include <opencv2/imgproc.hpp>
-//#include <opencv2/objdetect.hpp>
-//#include <opencv2/highgui.hpp>
-//#include "linemod_if.h"
-#include "lotus_common.h"
-//#include "detection.h"
-//#include "Eigen/Eigen"
 
-//int Recognition(const TImageU &tRGB, const TImageU16& tDepth, const TCamIntrinsicParam &tCamIntrinsic, vector<TObjRecoResult> &vtResult);
+#include "lotus_common.h"
 
 class LOTUS_RECO_EXPORT CObjRecoCAD
 {
@@ -23,7 +14,7 @@ class LOTUS_RECO_EXPORT CObjRecoCAD
                 EObjReco_PoseNet  ///< unsupported
     };
     virtual ~CObjRecoCAD() {};
-
+    static string GetVersion();
     static CObjRecoCAD *Create(EObjRecoType eType = EObjReco_LmICP);
     static void Destroy(CObjRecoCAD *pHandle);
     //training

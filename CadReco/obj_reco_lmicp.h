@@ -3,6 +3,7 @@
 #include "obj_reco_temp.h"
 
 #include "opencv2/core.hpp"
+#include "opencv2/calib3d.hpp"
 #include "linemod_if.h"
 
 using namespace cv;

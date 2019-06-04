@@ -2,7 +2,7 @@
 #define  DETECTION_H
 #include  <iostream>
 #include <string>
-#include "opencv2/opencv.hpp"
+#include "opencv2/core.hpp"
 using namespace std;
  
 extern void detection(cv::Mat depImg_model_raw, cv::Mat depImg_ref_raw, \

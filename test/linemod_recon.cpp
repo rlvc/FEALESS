@@ -9,6 +9,8 @@ using namespace cv;
 
 void linemod_recon(const string &strConfigFile)
 {
+    string strVersion = CObjRecoCAD::GetVersion();
+    cout << strVersion << endl;
 #ifdef TEST_DETECT
     VideoWriter videowriter_depth;
     videowriter_depth.open("./depth.avi",CV_FOURCC('D','I','V','X'),5.0, Size(640, 480));
@@ -73,8 +75,13 @@ void linemod_recon(const string &strConfigFile)
 #endif
         vector<TObjRecoResult> vtResult = vector<TObjRecoResult>();
 
-        ptReco->Recognition(tRGB, tDepth, t_cam_param, vtResult);
+        if (0 != ptReco->Recognition(tRGB, tDepth, t_cam_param, vtResult))
+        {
+            cout << "Recognition error" << endl;
+            continue;
+        }
         if(vtResult.size() == 0){
+            cout << "Recognition nothing" << endl;
             Mat display_f = aligned_color_image.clone();
             cv::imshow("failed", display_f);
             waitKey(1000);
@@ -99,19 +106,3 @@ void linemod_recon(const string &strConfigFile)
     CObjRecoCAD::Destroy(ptReco);
     return;
 }
-
-//static bool LoadArray(string strFile, float *pfBuf, int nLen)
-//{
-//    ifstream ifPose(strFile.c_str());
-//    if (!ifPose.is_open())
-//    {
-//        cout << "read file failed! [file] " << strFile << endl;
-//        return false;
-//    }
-//    string line;
-//    getline(ifPose, line);
-//    stringstream strstream(line);
-//    for (int i = 0; i < nLen; i++) strstream >> pfBuf[i];
-//    ifPose.close();
-//    return true;
-//}

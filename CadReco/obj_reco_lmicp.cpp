@@ -17,23 +17,6 @@ std::string ato_string( const int n )
     return stm.str() ;
 }
 
-
-static bool LoadArray(string strFile, float *pfBuf, int nLen)
-{
-    ifstream ifPose(strFile.c_str());
-    if (!ifPose.is_open())
-    {
-        cout << "read file failed! [file] " << strFile << endl;
-        return false;
-    }
-    string line;
-    getline(ifPose, line);
-    stringstream strstream(line);
-    for (int i = 0; i < nLen; i++) strstream >> pfBuf[i];
-    ifPose.close();
-    return true;
-}
-
 static void Convert(Mat &R, Mat &t, float *pfPose4x4)
 {
     float *pfPoseTmp = pfPose4x4;
@@ -115,7 +98,10 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     std::vector<String> class_ids;
     std::vector<cv::Mat> quantized_images;
 //    match_timer.start();
-    m_lm_detector->match(sources, m_matching_threshold, matches, class_ids, quantized_images);
+    if (0 != m_lm_detector->match(sources, m_matching_threshold, matches, class_ids, quantized_images))
+    {
+        return ERROR_INVALID_PARAM;
+    }
     if(matches.size() == 0)
     {
         return 0;

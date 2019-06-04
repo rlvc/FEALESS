@@ -1,6 +1,5 @@
 #include "detection.h"
 #include "depth_to_3d.h"
-#include "opencv2/opencv.hpp"
 #ifdef NEED_PCL_DEBUG
 #include <pcl/io/pcd_io.h>
 #endif

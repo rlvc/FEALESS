@@ -3,7 +3,7 @@ file(GLOB_RECURSE DIR_TEST_SOURCE "*.cpp")
 source_group("Header" FILES ${DIR_TEST_HEADER})
 source_group("Source" FILES ${DIR_TEST_SOURCE})
 
-include_directories(./ ${OpenCV_INCLUDE_DIRS} ${LINEMOD} "${KCF}" ${CAD_RECO} ${ICP_DIR} ${EIGEN3})
+include_directories(./ ${OpenCV_INCLUDE_DIRS} ${LINEMOD} "${KCF}" ${CAD_RECO} ${ICP_DIR})
 find_package(realsense2 REQUIRED)
 add_executable(FEALESS ${DIR_TEST_HEADER} ${DIR_TEST_SOURCE})
 set_target_properties(FEALESS PROPERTIES DEBUG_POSTFIX "d")
