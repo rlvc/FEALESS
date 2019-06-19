@@ -51,8 +51,8 @@ CObjRecoLmICP::CObjRecoLmICP()
     m_tCamMat = Mat::eye(3, 3, CV_64F);
     m_matching_threshold = 75.0f;
     m_icp_it_thr = 10;
-    m_dist_mean_thr = 0.0f;
-    m_dist_diff_thr = 0.001f;
+    m_dist_mean_thr = 0.5f;
+    m_dist_diff_thr = 0.01f;
 }
 
 CObjRecoLmICP::~CObjRecoLmICP()
@@ -85,6 +85,7 @@ int CObjRecoLmICP::SetROI(const TImageU &tROI)
 
 int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, const TCamIntrinsicParam &tCamIntrinsic, vector<TObjRecoResult> &vtResult)
 {
+    int64 start_lm = cv::getTickCount();
     vtResult.clear();
     if(0 != PrepareInputData(tRGB, tDepth, tCamIntrinsic))
     {
@@ -117,8 +118,12 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     Mat display = m_rgb.clone();
     drawResponse(current_template, (int)m_lm_detector->getModalities().size(), display, cv::Point(cur_match.x, cur_match.y), m_lm_detector->getT(0), current_rgb_template);
     cv::imshow("LineMod Result", display);
-    waitKey(100);
+    waitKey(100);  
 #endif
+
+    int64 end_lm = cv::getTickCount();
+    cout << "Time of linemod:" << (end_lm - start_lm) / cv::getTickFrequency() * 1000<< " ms" << endl << endl;
+
     int match_x = cur_match.x - current_template[0].offset_x;
     int match_y = cur_match.y - current_template[0].offset_y;
     cv::Rect_<int> rect_model_raw(current_template[0].offset_x, current_template[0].offset_y, current_template[0].width, current_template[0].height);
@@ -145,11 +150,17 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
         t_match(i1) = pfRow[3];
     }
     float d_match = poseCorrdInfo[12];
+//    cout << "match_x: " << match_x << '\t' << "match_y: " << match_y << endl;
+//    std::cout << "d_match_1: " << d_match << endl;
 
     std::string  filename_depth_model = m_str_lm_feature_path + string("/depth/") + ato_string(cur_match.template_id) + string(".png");
     Mat depImg_model_raw = imread(filename_depth_model, -1);
-    float model_center_val = (float)(depImg_model_raw.at<uint16_t>(depImg_model_raw.rows/2, depImg_model_raw.cols/2))/RENDERING_MODEL_SCALE;
-    d_match -= model_center_val;
+//    float model_center_val = (float)(depImg_model_raw.at<uint16_t>(depImg_model_raw.rows/2, depImg_model_raw.cols/2))*RENDERING_MODEL_SCALE;
+//    std::cout << "model_center_val: " << model_center_val << endl;
+
+//    cout << "match_x: " << match_x << '\t' << "match_y: " << match_y << endl;
+    
+//    d_match -= model_center_val;
 #ifdef EPNP_LM
     Mat pose_ini = Mat::zeros(4, 4, CV_32F);
     for (int i1 = 0; i1 < 3; i1++, pfRow += 4)
@@ -166,19 +177,29 @@ int CObjRecoLmICP::Recognition(const TImageU &tRGB, const TImageU16& tDepth, con
     pose_ini.at<float>(3, 3) = 1.0f;
     Mat pose_final = Mat::zeros(4, 4, CV_32F); 
     pose_final = ComputePose(depImg_model_raw, match_x, match_y, pose_ini);
-    memcpy(&cur_result.tWorld2Cam[0], pose_final.data, sizeof(float) * 16);
+    depImg_model_rawpose_final.data, sizeof(float) * 16);
+
 #else
     cv::Vec3f T_final;
     cv::Matx33f R_final;
-    detection(depImg_model_raw, m_depth, rect_model_raw, rect_ref_raw, \
+    
+    //-- 将model单位转化为mm. 此时两个图像depImg_model_raw_1和m_depth单位均为mm了
+    cv::Mat depImg_model_raw_1;
+    depImg_model_raw.convertTo(depImg_model_raw_1, CV_16UC1, 0.1);
+
+    detection(depImg_model_raw_1, m_depth, tCamIntrinsic, rect_model_raw, rect_ref_raw, \
         m_icp_it_thr, m_dist_mean_thr, m_dist_diff_thr, \
         r_match, t_match, d_match, T_final, R_final);
 
-    cv::Mat R_mat = Mat(R_final);
+    cv::Mat R_mat = Mat(R_final);  
     cv::Mat T_mat = Mat(T_final);
+ 
     Convert(R_mat, T_mat, cur_result.tWorld2Cam);
 #endif
     vtResult.push_back(cur_result);
+
+    int64 end_icp = cv::getTickCount();
+    cout << "Time of ICP:" << (end_icp - end_lm) / cv::getTickFrequency() * 1000<< " ms" << endl << endl;
     return 0;
 }
 
@@ -226,11 +247,13 @@ int CObjRecoLmICP::PrepareInputData(const TImageU &tRGB, const TImageU16& tDepth
 
     m_rgb = TImage2Mat(tRGB, w, h, CV_8UC3, true);
     m_depth = TImage2Mat(tDepth, w, h, CV_16UC1, true);
+/*
 #ifdef LINEMOD_DEBUG
     imshow("m_rgb", m_rgb);
     imshow("m_depth", m_depth);
     waitKey(100);
 #endif
+*/
     m_dCurTimeStamp = tRGB.dTimestamp;
     return 0;
 }

@@ -5,7 +5,12 @@ using namespace std;
 #ifdef NEED_PCL_DEBUG
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/common/transforms.h>
+#include <pcl/io/vtk_lib_io.h>
+
+static pcl::visualization::PCLVisualizer viewer;
 #endif
+
 void show_rect_info(const cv::Rect_<int> &rect, string rect_name)
 {
     std::cout << "----------" << rect_name << "------------" << std::endl;
@@ -51,7 +56,8 @@ void show_image(const cv::Mat &img, string img_name, bool isWaitKey)
 }
 
 
-#ifdef NEED_PCL_DEBUG
+
+
 extern void show_mat_vec3f(const cv::Mat_<cv::Vec3f> &depth_3d, string depth_3d_name, bool isWaitKey)
 {
     if (depth_3d.empty())
@@ -98,6 +104,7 @@ extern void show_mat_vec3f(const cv::Mat_<cv::Vec3f> &depth_3d, string depth_3d_
     show_image(depth_raw, depth_3d_name, isWaitKey);
 }
 
+#ifdef NEED_PCL_DEBUG
 void show_point_cloud_pcl()
 {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>); // 创建点云（指针）  
@@ -166,7 +173,7 @@ void get_vector_vec3f(pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud, std::vector
 
 void show_point_cloud_pcl(pcl::PointCloud<pcl::PointXYZ>::ConstPtr  pclCloud, string cloud_name)
 {  
-	static pcl::visualization::PCLVisualizer viewer;
+//	static pcl::visualization::PCLVisualizer viewer;
 	cout << "显示点云: " << cloud_name << endl;
  
 	viewer.addPointCloud(pclCloud, cloud_name);
@@ -181,7 +188,7 @@ void show_point_cloud_pcl(pcl::PointCloud<pcl::PointXYZ>::ConstPtr  pclCloud, st
 void show_point_cloud_pcl_with_color(pcl::PointCloud<pcl::PointXYZ>::ConstPtr  pclCloud, \
                                      string cloud_name, uint r, uint g, uint b)
 {  
-	static pcl::visualization::PCLVisualizer viewer;
+//	static pcl::visualization::PCLVisualizer viewer;
 	cout << "显示点云: " << cloud_name << endl;
     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ>
     target_color (pclCloud, r, g, b);
@@ -194,11 +201,67 @@ void show_point_cloud_pcl_with_color(pcl::PointCloud<pcl::PointXYZ>::ConstPtr  p
 
 	viewer.spin();
 }
+
+void transformPolygonMesh(pcl::PolygonMesh *inMesh, const Eigen::Matrix4f& transform)
+{
+    //NOTE: For testing purposes, the matrix is defined internally
+    //Important part starts here
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+    pcl::fromPCLPointCloud2(inMesh->cloud, cloud);
+    pcl::transformPointCloud(cloud, cloud, transform);
+    pcl::toPCLPointCloud2(cloud, inMesh->cloud);
+} 
+
+//-- show the  pcl polygonMesh
+void showPolygonMesh(const pcl::PolygonMesh & inMesh, string mesh_name)
+{
+//    static pcl::visualization::PCLVisualizer viewer;
+	cout << "显示mesh: " << mesh_name << endl;
+    viewer.addPolygonMesh(inMesh, mesh_name);
+
+//    viewer.addCoordinateSystem (1.0);  //显示XYZ指示轴
+    viewer.initCameraParameters ();   //初始化摄像头参数
+    viewer.spin();
+}
+
+void showTrsfMesh(string mesh_file_path, const Eigen::Matrix4f &transform, string mesh_name)
+{
+   
+    pcl::PolygonMesh mesh;
+    pcl::io::loadPolygonFile(mesh_file_path, mesh);
+
+    
+    transformPolygonMesh(&mesh, transform);
+    
+    showPolygonMesh(mesh, mesh_name);
+    
+}
+
+void showTrsfMesh(string mesh_file_path, const cv::Matx33f &R, const cv::Vec3f &T, string mesh_name)
+{    
+    Eigen::Matrix4f transform;
+   
+    transform << R(0, 0), R(0, 1), R(0, 2), T(0),
+                 R(1, 0), R(1, 1), R(1, 2), T(1),
+                 R(2, 0), R(2, 1), R(2, 2), T(2),
+                 0,       0,       0,       1   ;
+  
+    
+    showTrsfMesh(mesh_file_path, transform, mesh_name);
+}
+
+void removeAllVisualObjects()
+{
+    viewer.removeAllPointClouds();
+    viewer.removeAllShapes();
+    viewer.removeAllCoordinateSystems ();
+}
 #endif
+
 bool is_vec3f_valid(const cv::Vec3f & vec)
 {
  //   return cv::checkRange(vec);
-    float  max_valid_depth = 9; //100;
+    float  max_valid_depth = 900; //100;
     return (vec[2] <=  max_valid_depth);
 }
 
@@ -262,13 +325,15 @@ float vecToMat(const std::vector<cv::Vec3f>& src, cv::Mat_<cv::Vec3f> &dst)
 //-- 初始化内参矩阵
 void initInternalMat(cv::Mat_<float> & K)
 {
+#ifdef TEST_DETECT
     if( 3 != K.rows && 3 != K.cols)
     {
         cout << "The Internal Matrix should be 3*3 Matrix";
         return;
     }
 
-    float  val[] = {671, 0, 320, 0, 671, 240, 0, 0, 1};
+//    float  val[] = {671, 0, 320, 0, 671, 240, 0, 0, 1};
+    float  val[] = {608, 0, 320, 0, 608, 240, 0, 0, 1};
     
     cout << "------------initInternalMat -----------\n";
     for (int i=0; i<K.rows; i++)
@@ -283,6 +348,34 @@ void initInternalMat(cv::Mat_<float> & K)
     }
 
     cout << endl;
+#else
+   if( 3 != K.rows && 3 != K.cols)
+    {
+        return;
+    }
+
+//    float  val[] = {671, 0, 320, 0, 671, 240, 0, 0, 1};
+    float  val[] = {608, 0, 320, 0, 608, 240, 0, 0, 1};
+    
+    for (int i=0; i<K.rows; i++)
+    {
+        for (int j=0; j<K.cols; j++)
+        {
+            K.at<float>(i, j) = *(val+i*K.rows+j);
+        }
+        
+        
+    }
+    
+#endif
+   
+}
+
+void setCamIntrinsic(const TCamIntrinsicParam &tCamIntrinsic, cv::Mat_<float> & K)
+{
+    K = cv::Mat(cv::Matx33d(tCamIntrinsic.dFx, 0, tCamIntrinsic.dCx, \
+                            0, tCamIntrinsic.dFy, tCamIntrinsic.dCy, \
+                            0, 0, 1));
 }
 
 /** get 3D points out of the image */
@@ -309,6 +402,26 @@ void matToVec(const cv::Mat_<cv::Vec3f> &src_ref, \
     pts_mod.push_back(*it_mod);
   }
    
+}
+
+//-- scale the point cloud
+void scalePointSet(std::vector<cv::Vec3f>& pointSet, int scale )
+{
+   size_t  size = pointSet.size();
+    for (int i=0; i<size; i++)
+    {
+        pointSet[i] *= scale;           
+    }
+}
+
+//-- scale the  regular point cloud 
+void scale_mat_vec3f(cv::Mat_<cv::Vec3f> &depth_3d, int scale)
+{
+    cv::MatIterator_<cv::Vec3f> it = depth_3d.begin();
+   for (; it != depth_3d.end(); ++it)
+   {
+     (*it) *= scale;     
+   }
 }
 
 

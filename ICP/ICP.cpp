@@ -10,8 +10,8 @@ void getMean(const std::vector<cv::Vec3f> &pts, cv::Vec3f& centroid)
   centroid = cv::Vec3f(0.0f, 0.0f, 0.0f);
   size_t n_points = 0;
   for (std::vector<cv::Vec3f>::const_iterator it = pts.begin(); it != pts.end(); ++it) {
-    if (!is_vec3f_valid(*it))   // cv::checkRange
-      continue;
+  //  if (!is_vec3f_valid(*it))   // cv::checkRange
+  //    continue;
     centroid += (*it);
     ++n_points;
   }
@@ -94,8 +94,10 @@ float getL2distClouds(const std::vector<cv::Vec3f> &model, const std::vector<cv:
     ++counter;
   }
 
+  #ifdef TEST_DETECT
   cout << "counter: " << counter << endl;
   cout << "nbr_inliers: " << nbr_inliers << endl << endl;
+  #endif
 
   if (counter > 0)
   {
@@ -139,9 +141,9 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
 		data_model[i][1] = pts_model[i][1];
 		data_model[i][2] = pts_model[i][2];
 	}
-
+#ifdef TEST_DETECT
   cout << "size_ref: " << size_ref << '\t' << "size_model: " << size_model << endl;
-
+#endif
   //-- 2. ����flann����������������� 
   cvflann::Index<cvflann::L2_Simple<float> > index(data_ref, cvflann::KDTreeSingleIndexParams(15));
 	index.buildIndex();
@@ -212,9 +214,9 @@ void PointsCorresponding(const std::vector<cv::Vec3f> &pts_ref, \
 		data_model[i][1] = pts_model[i][1];
 		data_model[i][2] = pts_model[i][2];
 	}
-
+#ifdef TEST_DETECT
   cout << "size_ref: " << size_ref << '\t' << "size_model: " << size_model << endl;
-
+#endif
   //-- 2. ����flann����������������� 
 //  cvflann::Index<cvflann::L2_Simple<float> > index(data_ref, cvflann::KDTreeSingleIndexParams(15));
 //	index.buildIndex();
@@ -320,6 +322,10 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
                       const float dist_mean_thr,\
                       const float dist_diff_thr)
 {
+  #ifdef TEST_DETECT
+  cout << "Enter into icpCloudToCloud_Base(..)" << endl;
+  #endif
+
   if (pts_model.empty() || pts_ref.empty())
       return -1;
   //optimal rotation matrix
@@ -335,15 +341,20 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
   px_inliers_ratio = getL2distClouds(pts_model, pts_ref, dist_mean);
   cout << "dist_mean: " << dist_mean << endl << endl;
 
+  #ifdef TEST_DETECT
   int64 Time[9];
+  #endif
   //The difference between two previously obtained mean distances between the reference and the model point clouds
   float dist_diff = std::numeric_limits<float>::max();
   //the number of performed iterations
   int iter = 0;
   while ( (dist_mean > dist_mean_thr) && (dist_diff > dist_diff_thr) && (iter < icp_it_thr) )
   {
+    #ifdef TEST_DETECT
     Time[0] = cv::getTickCount();
     Time[1] = Time[0];
+    #endif
+
     ++iter;
 
     cout << "-----------iter: " << iter << "-----------" << endl;
@@ -353,8 +364,9 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
     getMean(pts_model, m_centroid);
     getMean(pts_ref, r_centroid);
 
+    #ifdef TEST_DETECT
     Time[2] = cv::getTickCount();
-
+    #endif
     //compute the covariance matrix
     cv::Matx33f covariance (0,0,0, 0,0,0, 0,0,0);
     std::vector<cv::Vec3f>::iterator it_s = pts_model.begin();
@@ -362,8 +374,9 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
     for (; it_s < pts_model.end(); ++it_s, ++it_ref)
       covariance += (*it_s) * (*it_ref).t();
     
+    #ifdef TEST_DETECT
     Time[3] = cv::getTickCount();
-
+    #endif
 
     cv::Mat w, u, vt;
     cv::SVD::compute(covariance, w, u, vt);
@@ -375,12 +388,16 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
     if (!cv::checkRange(R_optimal) || !cv::checkRange(T_optimal))
       continue;
     
+    #ifdef TEST_DETECT
     Time[4] = cv::getTickCount();
-
+    #endif
     //transform the point cloud
     transformPoints(pts_model, pts_model, R_optimal, T_optimal);
-    
+   
+    #ifdef TEST_DETECT
     Time[5] = cv::getTickCount();
+    #endif 
+
 #ifdef NEED_PCL_DEBUG
     //-- show
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_model_trsf = getpclPtr(pts_model);
@@ -390,19 +407,24 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
 
     show_point_cloud_pcl_with_color(pcl_cloud_model_trsf, str, 255, 255, 0);
 #endif // PCL_DETECT
-
+    
+    #ifdef TEST_DETECT
     Time[6] = cv::getTickCount();
+    #endif
+
     //compute the distance between the transformed and ref point clouds
     dist_diff = dist_mean;
     px_inliers_ratio = getL2distClouds(pts_model, pts_ref, dist_mean, 3 * dist_mean);
     dist_diff -= dist_mean;
-    dist_diff = fabs(dist_diff);
+  //  dist_diff = fabs(dist_diff);
     
     cout << "dist_mean: " << dist_mean << endl;
     cout << "dist_diff: " << dist_diff << endl;
     cout << endl;
 
+    #ifdef TEST_DETECT
     Time[7] = cv::getTickCount();
+    #endif
     //update the translation matrix: turn to opposite direction at first and then do translation
     T = R_optimal * T;
     //do translation
@@ -410,9 +432,14 @@ float icpCloudToCloud_base(const std::vector<cv::Vec3f> &pts_ref, \
     //update the rotation matrix
     R = R_optimal * R;
 
+    #ifdef TEST_DETECT
     Time[8] = cv::getTickCount();
-    //-- ��ʾ�㷨ʱ��
+    #endif
+    //-- ��ʾ�㷨ʱ�
+
+    #ifdef TEST_DETECT
     printTimeOfICP(Time, 9);
+    #endif
     //std::cout << " it " << iter << "/" << icp_it_th << " : " << std::fixed << dist_mean << " " << d_diff << " " << px_inliers_ratio << " " << pts_model.size() << std::endl;
   }
 
@@ -432,6 +459,10 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
                       const float dist_mean_thr,\
                       const float dist_diff_thr)
 {
+
+  #ifdef TEST_DETECT
+  cout << "Enter into icpCloudToCloud(..)" << endl;
+  #endif
 
   size_t  size_model = pts_model.size();
   size_t  size_ref = pts_ref.size();
@@ -460,14 +491,21 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
   cout << "dist_mean: " << dist_mean << endl << endl;
 
   std::vector<cv::Vec3f> pts_cor_model, pts_cor_ref;
+
+  #ifdef TEST_DETECT
   int64 Time[9];
+  #endif
+
   //The difference between two previously obtained mean distances between the reference and the model point clouds
   float dist_diff = std::numeric_limits<float>::max(); 
   //the number of performed iterations
   int iter = 0;
   while ( (dist_mean > dist_mean_thr) && (dist_diff > dist_diff_thr) && (iter < icp_it_thr) )
   {
+    #ifdef TEST_DETECT
     Time[0] = cv::getTickCount();
+    #endif
+
     ++iter;
 
     cout << "-----------iter: " << iter << "-----------" << endl;
@@ -485,13 +523,19 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
       iter = icp_it_thr; 
       continue;
     }
+
+    #ifdef TEST_DETECT
     Time[1] = cv::getTickCount(); 
+    #endif
 
     //compute centroids of each point subset
     cv::Vec3f m_centroid, r_centroid;
     getMean(pts_cor_model, m_centroid);
     getMean(pts_cor_ref, r_centroid);
+
+    #ifdef TEST_DETECT
     Time[2] = cv::getTickCount();
+    #endif
 
     //compute the covariance matrix
     cv::Matx33f covariance (0,0,0, 0,0,0, 0,0,0);
@@ -499,7 +543,10 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     std::vector<cv::Vec3f>::const_iterator it_ref = pts_cor_ref.begin();
     for (; it_s < pts_cor_model.end(); ++it_s, ++it_ref)
       covariance += (*it_s) * (*it_ref).t();
+
+    #ifdef TEST_DETECT
     Time[3] = cv::getTickCount();
+    #endif
 
     cv::Mat w, u, vt;
     cv::SVD::compute(covariance, w, u, vt);
@@ -510,11 +557,16 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     T_optimal = r_centroid - R_optimal * m_centroid;
     if (!cv::checkRange(R_optimal) || !cv::checkRange(T_optimal))
       continue;
-    Time[4] = cv::getTickCount();
 
+    #ifdef TEST_DETECT
+    Time[4] = cv::getTickCount();
+    #endif
     //transform the point cloud
     transformPoints(pts_model, pts_model, R_optimal, T_optimal);
+
+    #ifdef TEST_DETECT
     Time[5] = cv::getTickCount();
+    #endif
     
 #ifdef NEED_PCL_DEBUG
     //-- show
@@ -526,28 +578,34 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
     show_point_cloud_pcl_with_color(pcl_cloud_model_trsf, str, 255, 255, 0);
 #endif // NEED_PCL_DEBUG
 
-    
+    #ifdef TEST_DETECT
     Time[6] = cv::getTickCount(); 
+    #endif
     //compute the distance between the transformed and ref point clouds
     dist_diff = dist_mean;
     px_inliers_ratio = getL2distClouds(pts_model, pts_ref, dist_mean, 3 * dist_mean);
     dist_diff -= dist_mean;
-    dist_diff = fabs(dist_diff);
+  //  dist_diff = fabs(dist_diff);
     
     cout << "dist_mean: " << dist_mean << endl;
     cout << "dist_diff: " << dist_diff << endl;
     cout << endl;
-    Time[7] = cv::getTickCount();
 
+    #ifdef TEST_DETECT
+    Time[7] = cv::getTickCount();
+    #endif
     //update the translation matrix: turn to opposite direction at first and then do translation
     T = R_optimal * T;
     //do translation
     cv::add(T, T_optimal, T);
     //update the rotation matrix
     R = R_optimal * R;
+
+    #ifdef TEST_DETECT
     Time[8] = cv::getTickCount();
     //-- ��ʾ�㷨ʱ��
     printTimeOfICP(Time, 9);
+    #endif
     //std::cout << " it " << iter << "/" << icp_it_th << " : " << std::fixed << dist_mean << " " << d_diff << " " << px_inliers_ratio << " " << pts_model.size() << std::endl;
   }
 
@@ -557,7 +615,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref, \
 
 /** Refine the object pose by icp (Iterative Closest Point) alignment of two vectors of 3D points.*/
 float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
-                      std::vector<cv::Vec3f> &pts_model, \
+                      const std::vector<cv::Vec3f> &pts_model, \
                       cv::Matx33f& R, \
                       cv::Vec3f& T, \
                       float &px_inliers_ratio, \
@@ -565,7 +623,10 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
                       const float dist_mean_thr,\
                       const float dist_diff_thr)
 {
+  #ifdef TEST_DETECT
   cout << "Enter into icpCloudToCloud_Ex(..)" << endl;
+  #endif
+
   size_t  size_model = pts_model.size();
   size_t  size_ref = pts_ref.size();
   
@@ -597,14 +658,24 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
   cvflann::Index<cvflann::L2_Simple<float> > index(data_ref, cvflann::KDTreeSingleIndexParams(15));
   index.buildIndex();
   
+  #ifdef TEST_DETECT
   int64 time_end = cv::getTickCount(); 
   cout << "-- The time of computing point correspoinding: " << (time_end - time_start) / cv::getTickFrequency() * 1000<< " ms--" << endl;
+  #endif
   //The mean distance between the reference and the model point clouds
+  std::vector<cv::Vec3f>  pts_model_tmp; 
+  copyPoints(pts_model, pts_model_tmp);
+
   float dist_mean = 0.0f;
-  px_inliers_ratio = getL2distClouds(pts_model, pts_ref, dist_mean);
+  px_inliers_ratio = getL2distClouds(pts_model_tmp, pts_ref, dist_mean);
+  #ifdef NEED_PCL_DEBUG
   cout << "dist_mean: " << dist_mean << endl << endl;
+  #endif
   std::vector<cv::Vec3f> pts_cor_model, pts_cor_ref;
+
+  #ifdef TEST_DETECT
   int64 Time[9];
+  #endif
 
   //The difference between two previously obtained mean distances between the reference and the model point clouds
   float dist_diff = std::numeric_limits<float>::max(); 
@@ -612,25 +683,29 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
   int iter = 0;
   while ( (dist_mean > dist_mean_thr) && (dist_diff > dist_diff_thr) && (iter < icp_it_thr) )
   {
+    #ifdef TEST_DETECT
     Time[0] = cv::getTickCount();
-    ++iter;
+    #endif
 
+    ++iter;
+    
+    #ifdef NEED_PCL_DEBUG
     cout << "-----------iter: " << iter << "-----------" << endl;
-  
+    #endif
     //subsample points from the match and ref clouds
-    if (pts_model.empty() || pts_ref.empty())
+    if (pts_model_tmp.empty() || pts_ref.empty())
       continue;
 
     //-- find the corresponding point pairs in two point cloud
-    if (1==iter)  //-- ��ʼ����ʱpts_model��pts_ref���Ѿ�ʱcorresponded�ˡ�
+    if (1==iter)  //-- pts_model_tmp
     {
-      copyPoints(pts_model, pts_cor_model);
+      copyPoints(pts_model_tmp, pts_cor_model);
       copyPoints(pts_ref, pts_cor_ref);
     }
     else
     {
-  //    PointsCorresponding(pts_ref, pts_model, pts_cor_ref, pts_cor_model, 3*dist_mean);//-- 3*dist_mean
-      PointsCorresponding(pts_ref, pts_model, index, pts_cor_ref, pts_cor_model, 3*dist_mean);
+  //    PointsCorresponding(pts_ref, pts_model_tmp, pts_cor_ref, pts_cor_model, 3*dist_mean);//-- 3*dist_mean
+      PointsCorresponding(pts_ref, pts_model_tmp, index, pts_cor_ref, pts_cor_model, 3*dist_mean);
     }
     //-- ��Ӧ���̫�٣���ֱ�Ӳ�����
     if (pts_cor_ref.size() < ptNum_thr || pts_cor_model.size() < ptNum_thr )
@@ -638,13 +713,19 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
       iter = icp_it_thr; 
       continue;
     }
-    Time[1] = cv::getTickCount();   
+
+    #ifdef TEST_DETECT
+    Time[1] = cv::getTickCount(); 
+    #endif  
 
     //compute centroids of each point subset
     cv::Vec3f m_centroid, r_centroid;
     getMean(pts_cor_model, m_centroid);
     getMean(pts_cor_ref, r_centroid);
+
+    #ifdef TEST_DETECT
     Time[2] = cv::getTickCount();
+    #endif
 
     //compute the covariance matrix
     cv::Matx33f covariance (0,0,0, 0,0,0, 0,0,0);
@@ -652,7 +733,10 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
     std::vector<cv::Vec3f>::const_iterator it_ref = pts_cor_ref.begin();
     for (; it_s < pts_cor_model.end(); ++it_s, ++it_ref)
       covariance += (*it_s) * (*it_ref).t();
+
+    #ifdef TEST_DETECT
     Time[3] = cv::getTickCount();
+    #endif
 
     cv::Mat w, u, vt;
     cv::SVD::compute(covariance, w, u, vt);
@@ -663,41 +747,60 @@ float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref, \
     T_optimal = r_centroid - R_optimal * m_centroid;
     if (!cv::checkRange(R_optimal) || !cv::checkRange(T_optimal))
       continue;
+
+    #ifdef TEST_DETECT
     Time[4] = cv::getTickCount();
+    #endif
 
     //transform the point cloud
-    transformPoints(pts_model, pts_model, R_optimal, T_optimal);
+    transformPoints(pts_model_tmp, pts_model_tmp, R_optimal, T_optimal);
+
+    #ifdef TEST_DETECT
     Time[5] = cv::getTickCount();
+    #endif
+
+    /*
 #ifdef NEED_PCL_DEBUG
     //-- show
-    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_model_trsf = getpclPtr(pts_model);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud_model_trsf = getpclPtr(pts_model_tmp);
     stringstream ss;
     ss << "model_trsf_" << iter;
     string  str = ss.str();
 
     show_point_cloud_pcl_with_color(pcl_cloud_model_trsf, str, 255, 255, 0);
 #endif // NEED_PCL_DEBUG
-    Time[6] = cv::getTickCount(); 
+    */
+   
+    #ifdef TEST_DETECT
+    Time[6] = cv::getTickCount();
+    #endif 
     //compute the distance between the transformed and ref point clouds
     dist_diff = dist_mean;
-    px_inliers_ratio = getL2distClouds(pts_model, pts_ref, dist_mean, 3 * dist_mean);
+    px_inliers_ratio = getL2distClouds(pts_model_tmp, pts_ref, dist_mean, 3 * dist_mean);
     dist_diff -= dist_mean;
-    dist_diff = fabs(dist_diff);
+  //  dist_diff = fabs(dist_diff);
     
+    #ifdef NEED_PCL_DEBUG
     cout << "dist_mean: " << dist_mean << endl;
     cout << "dist_diff: " << dist_diff << endl;
     cout << endl;
-    Time[7] = cv::getTickCount();
+    #endif
 
+    #ifdef TEST_DETECT
+    Time[7] = cv::getTickCount();
+    #endif
     //update the translation matrix: turn to opposite direction at first and then do translation
     T = R_optimal * T;
     //do translation
     cv::add(T, T_optimal, T);
     //update the rotation matrix
     R = R_optimal * R;
+
+    #ifdef TEST_DETECT
     Time[8] = cv::getTickCount();
     //-- ��ʾ�㷨ʱ��
     printTimeOfICP(Time, 9);
+    #endif
     //std::cout << " it " << iter << "/" << icp_it_th << " : " << std::fixed << dist_mean << " " << d_diff << " " << px_inliers_ratio << " " << pts_model.size() << std::endl;
   }
 

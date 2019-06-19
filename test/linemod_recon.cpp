@@ -43,6 +43,7 @@ void linemod_recon(const string &strConfigFile)
     int nFrame = 1;
     while ( getWindowProperty(final_win, WND_PROP_AUTOSIZE) >= 0) // Application still alive?
     {
+        int64 start = cv::getTickCount();
         rs2::frameset frameset = pipe.wait_for_frames();
         auto processed = align.process(frameset);
 
@@ -100,8 +101,13 @@ void linemod_recon(const string &strConfigFile)
             mTag2Meshes[vtResult[i].strObjTag].SetCamIntrinsic(t_cam_param);
             mTag2Meshes[vtResult[i].strObjTag].Mesh(display, P, colors[i&3]);
         }
-        cv::imshow(final_win, display);
+        int64 end = cv::getTickCount();
+        cout << "final time:" << (end - start) / cv::getTickFrequency() * 1000<< " ms" << endl << endl;
+     
+        cv::imshow(final_win, display);    
         waitKey(100);
+      
+    //    waitKey();
     }
     CObjRecoCAD::Destroy(ptReco);
     return;

@@ -32,6 +32,7 @@ void CModelMesh::Load(string strModelFile, int model_scale)
 				break;
 			default:
 				sscanf(buf, "v %f %f %f", &x, &y, &z);
+				//vtVertex.push_back(Point3f(x/1000, y/1000, z/1000));
 				vtVertex.push_back(Point3f(x/ model_scale, y/ model_scale, z/ model_scale));
 				break;
 			}

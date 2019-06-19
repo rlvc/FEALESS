@@ -10,7 +10,7 @@ set(CAD_RECO ${PROJECT_SOURCE_DIR}/CadReco)
 #test
 set(TEST ${PROJECT_SOURCE_DIR}/test)
 #strongly recommend to use the opencv in the repo cup.third.party
-set(CUP_3RD_PARTY_DIR ${PROJECT_SOURCE_DIR}/../cup.third.party)
+set(CUP_3RD_PARTY_DIR ${PROJECT_SOURCE_DIR}/../cup/cup.third.party)
 set(OpenCV_DIR ${CUP_3RD_PARTY_DIR}/OpenCV/${CMAKE_SYSTEM_NAME})
 set(EIGEN3 ${CUP_3RD_PARTY_DIR}/Eigen)
 find_package(OpenCV REQUIRED)

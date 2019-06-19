@@ -149,7 +149,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref,\
  * @brief Iterative Closest Point algorithm that refines the object pose based on alignment of two point clouds (the reference and model).
  *        for two corresponded point clouds
  * @param[in] pts_ref The reference point cloud(static)
- * @param[in,out] pts_model The model point cloud(dynamic)
+ * @param[in] pts_model The model point cloud(static)
  * 
  * @param[out] R The final rotation matrix
  * @param[out] T The final translation vector
@@ -163,7 +163,7 @@ float icpCloudToCloud(const std::vector<cv::Vec3f> &pts_ref,\
  * notice: 1. If one of the three icp terminate condition occured, icp will terminate. 
  *         2. It is valid when pts_ref and pts_model are corresponded yet. meanings numbers equal and points correspond*/
 float icpCloudToCloud_Ex(const std::vector<cv::Vec3f> &pts_ref,\
-                      std::vector<cv::Vec3f> &pts_model,\
+                      const std::vector<cv::Vec3f> &pts_model,\
                       cv::Matx33f& R,\
                       cv::Vec3f& T,\
                       float &px_ratio_match,\
